@@ -74,7 +74,9 @@ body{
 }
 .searchBloc .btn{
 	width:100% !important;
-
+}
+.searchBloc .panel-title{
+	font-weight: bold;
 }
 .resultTab{
 	background: white;
