@@ -1,0 +1,14 @@
+{
+  "name": "project",
+  "version": "1.0.0",
+  "description": "Côté client Manga Network",
+  "main": "index.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "author": "Ivan KLARMAN",
+  "license": "MIT",
+  "devDependencies": {
+    "electron-prebuilt": "^0.27.2"
+  }
+}
