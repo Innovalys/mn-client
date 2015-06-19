@@ -1,7 +1,7 @@
 # mn-client
 MangaNetwork desktop client source code
 
-## index.html
+## Connect
 
   You can put your username and password
   This check on database if current information are ok.
@@ -21,16 +21,21 @@ MangaNetwork desktop client source code
   Redirect to homepage.html if correct
 
 ## Search
-  ## Manga
+  MANGA
     You can search mangas
    * **Choose source ( by default if tou don't check, all sources are apply)**
    * **Put part of word, this check all properties on database for retrieving mangas**
-   * ** *optional - Select category**
+   * **(Optional)Select category**
   
-  ## Author
+  AUTHOR
     You can search authors
    * **Choose source ( by default if tou don't check, all sources are apply)**
    * **Put part of word, this check all properties on database for retrieving authors**
+  
+  USER
+    You can search users
+      * ** Put part of word, this check all properties on database for retrieving users***
+
 ## Profil
   You can modify your profil informations.
   * **Username**
@@ -38,7 +43,6 @@ MangaNetwork desktop client source code
   * **Avatar**
     
   When you click on input text, you can see notification for informations.
-  
   Click on confirm button for validate and apply on database.
   
   ## 
