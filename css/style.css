@@ -124,6 +124,10 @@ body{
 	height: 100px;
 	margin-bottom: 20px;
 }
+.listpage img{
+	width: 500px !important;
+	height: 600px !important;
+}
 @media (min-width:768px){
 
   .navbar-default .navbar-nav > li:not(:last-child) {
