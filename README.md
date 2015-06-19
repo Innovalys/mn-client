@@ -37,7 +37,7 @@ AUTHOR
 USER
 
   You can search users
-   * ** Put part of word, this check all properties on database for retrieving users**
+   * **Put part of word, this check all properties on database for retrieving users**
 
 ## Profil
 
