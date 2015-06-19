@@ -8,7 +8,7 @@ MangaNetwork desktop client source code
    * **Username**
    * **Password**
   
-  ![alt tag](https://github.com/Innovalys/mn-client/images/screen/connect.jpg)
+  ![alt tag](https://github.com/Innovalys/mn-client/blob/master/images/screen/connect.jpg)
   
   Redirect to homepage.html if correct
   
@@ -19,7 +19,8 @@ MangaNetwork desktop client source code
    * **Username**
    * **Password**
    * **Confirm Password**
- ![alt tag](https://github.com/Innovalys/mn-client/images/screen/signin.jpg)
+
+ ![alt tag](https://github.com/Innovalys/mn-client/blob/master/images/screen/signin.jpg)
 
  Redirect to homepage.html if correct
 
@@ -31,7 +32,7 @@ MANGA
   * **Put part of word, this check all properties on database for retrieving mangas**
   * **(Optional)Select category**
   
-  ![alt tag](https://github.com/Innovalys/mn-client/images/screen/searchM.jpg)
+  ![alt tag](https://github.com/Innovalys/mn-client/blob/master/images/screen/searchM.jpg)
 
 AUTHOR
 
@@ -39,14 +40,14 @@ AUTHOR
    * **Choose source ( by default if tou don't check, all sources are apply)**
    * **Put part of word, this check all properties on database for retrieving authors**
   
-  ![alt tag](https://github.com/Innovalys/mn-client/images/screen/searchA.jpg)
+  ![alt tag](https://github.com/Innovalys/mn-client/blob/master/images/screen/searchA.jpg)
 
 USER
 
   You can search users
    * **Put part of word, this check all properties on database for retrieving users**
   
-  ![alt tag](https://github.com/Innovalys/mn-client/images/screen/searchU.jpg)
+  ![alt tag](https://github.com/Innovalys/mn-client/blob/master/images/screen/searchU.jpg)
 
 ## How to modify profil information
 
