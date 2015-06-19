@@ -84,6 +84,7 @@ body{
 }
 .resultTab th{
 	text-align:center;
+	background: #D8D8D8;
 }
 .resultTab .fa-download{
 	color: green;
@@ -117,6 +118,11 @@ body{
 .bt-disabled i{
 	pointer-events:none;
 	color: white !important;
+}
+.form_modify_usrprofil img{
+	width: 100px;
+	height: 100px;
+	margin-bottom: 20px;
 }
 @media (min-width:768px){
 
