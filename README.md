@@ -7,7 +7,9 @@ MangaNetwork desktop client source code
   This check on database if current information are ok.
    * **Username**
    * **Password**
+  
   ![alt tag](https://github.com/Innovalys/mn-client/images/screen/connect.jpg)
+  
   Redirect to homepage.html if correct
   
 ## How to sign in 
@@ -17,8 +19,9 @@ MangaNetwork desktop client source code
    * **Username**
    * **Password**
    * **Confirm Password**
-  ![alt tag](https://github.com/Innovalys/mn-client/images/screen/signin.jpg)
-  Redirect to homepage.html if correct
+ ![alt tag](https://github.com/Innovalys/mn-client/images/screen/signin.jpg)
+
+ Redirect to homepage.html if correct
 
 ## How to search
 MANGA
