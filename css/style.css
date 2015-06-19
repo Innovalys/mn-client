@@ -75,6 +75,55 @@ body{
 .searchBloc .btn{
 	width:100% !important;
 }
+.searchBloc .panel-title{
+	font-weight: bold;
+}
+.resultTab{
+	background: white;
+	text-align:center;
+}
+.resultTab th{
+	text-align:center;
+	background: #D8D8D8;
+}
+.resultTab .fa-download{
+	color: green;
+	line-height: 1.5;
+}
+.resultTab .fa-times{
+	color: red;
+	line-height: 1.5;
+}
+.resultTab .fa-plug{
+	color: #0083a9;
+	line-height: 1.5;
+}
+.resultTab .fa-star, .fa-star-o{
+	color: #F7D358;
+	line-height: 1.5;
+}
+.resultTab img{
+	width: 55px;
+	height: 80px;
+}
+.resultTab .nameMangaSearch{
+	font-size: 17px;
+	font-weight: 800;
+	text-align:left;
+	line-height: 4.1;
+}
+.bt-disabled{
+    cursor: not-allowed;
+}
+.bt-disabled i{
+	pointer-events:none;
+	color: white !important;
+}
+.form_modify_usrprofil img{
+	width: 100px;
+	height: 100px;
+	margin-bottom: 20px;
+}
 @media (min-width:768px){
 
   .navbar-default .navbar-nav > li:not(:last-child) {
