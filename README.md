@@ -23,21 +23,21 @@ MangaNetwork desktop client source code
 ## Search
   MANGA
   
-  You can search mangas
-   * **Choose source ( by default if tou don't check, all sources are apply)**
-   * **Put part of word, this check all properties on database for retrieving mangas**
-   * **(Optional)Select category**
+   You can search mangas
+    * **Choose source ( by default if tou don't check, all sources are apply)**
+    * **Put part of word, this check all properties on database for retrieving mangas**
+    * **(Optional)Select category**
   
   AUTHOR
 
-  You can search authors
-   * **Choose source ( by default if tou don't check, all sources are apply)**
-   * **Put part of word, this check all properties on database for retrieving authors**
+   You can search authors
+    * **Choose source ( by default if tou don't check, all sources are apply)**
+    * **Put part of word, this check all properties on database for retrieving authors**
   
   USER
 
-  You can search users
-   * ** Put part of word, this check all properties on database for retrieving users***
+   You can search users
+    * ** Put part of word, this check all properties on database for retrieving users***
 
 ## Profil
 
@@ -48,4 +48,3 @@ MangaNetwork desktop client source code
   
   When you click on input text, you can see notification for informations.
   Click on confirm button for validate and apply on database.
-  
