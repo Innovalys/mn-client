@@ -49,6 +49,24 @@ USER
   
   ![alt tag](https://github.com/Innovalys/mn-client/blob/master/images/screen/searchU.jpg)
 
+## How to download & delete mangas
+
+  You can download, clicking on green button
+  
+  ![alt tag](https://github.com/Innovalys/mn-client/blob/master/images/screen/resultSearchM.jpg)
+  
+## How to add & delete favorite author
+
+  You can add to favorite author clicking on yellow button
+  
+  ![alt tag](https://github.com/Innovalys/mn-client/blob/master/images/screen/resultSearchA.jpg)
+
+## How to follow or unfollow users
+
+  You can add to favorite author clicking on yellow button
+  
+  ![alt tag](https://github.com/Innovalys/mn-client/blob/master/images/screen/resultSearchU.jpg)
+    
 ## How to modify profil information
 
   You can modify your profil informations.
