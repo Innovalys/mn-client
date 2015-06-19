@@ -74,5 +74,8 @@ USER
    * **Password**
    * **Avatar**
   
+  ![alt tag](https://github.com/Innovalys/mn-client/blob/master/images/screen/profil.jpg)
+
   When you click on input text, you can see notification for informations.
+  
   Click on confirm button for validate and apply on database.
