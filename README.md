@@ -3,7 +3,8 @@ MangaNetwork desktop client source code
 
 ## How to connect
 
-  You can put your username and password
+  You can put your username and password.
+  
   This check on database if current information are ok.
    * **Username**
    * **Password**
@@ -15,11 +16,13 @@ MangaNetwork desktop client source code
 ## How to sign in 
 
   You can create an account.
+  
   This create your account.
-   * **Username**
-   * **Password**
-   * **Confirm Password**
-
+  
+  * **Username**
+  * **Password**
+  * **Confirm Password**
+  
  ![alt tag](https://github.com/Innovalys/mn-client/blob/master/images/screen/signin.jpg)
 
  Redirect to homepage.html if correct
