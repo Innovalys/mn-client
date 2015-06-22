@@ -1,0 +1,150 @@
+body{
+	margin:0 !important;
+	background: url("../images/background.png")
+}
+.auth{
+	width:330px;
+	height: 250px;
+	margin-left: auto !important;
+	margin-right: auto !important;
+	padding:15px;
+}
+.auth .input-group, .auth a, .auth input[type=submit]{
+	margin-top:20px;
+}
+.auth .btn{
+	font-weight: bold;
+	font-size: 17px;
+	color: white !important;
+	width:100%;
+}
+
+.bt-connect{
+	background-color: #01A9DB !important;
+}
+.bt-connect:hover{
+	background: black !important;
+}
+.bt-signin{
+	background-color: #FFBF00 !important;
+}
+.bt-signin:hover{
+	background: black !important;
+}
+.bt-confirm{
+	background-color: #088A08 !important;
+}
+.bt-confirm:hover{
+	background: black !important;
+}
+.bt-back{
+	background-color: #BDBDBD !important;
+}
+.bt-back:hover{
+	background-color: black !important;
+}
+.title{
+	text-align:center;
+}
+.logo{
+	padding: 6px !important;
+}
+.ipt-search{
+	font-size: 12px !important;
+	width:180px !important;
+}
+.avatar{
+	padding: 0px !important;
+}
+.avatar img{
+	width:55px !important;
+	height:50px !important;
+	border-right:2px solid #ddd;
+	border-left:2px solid #ddd;
+	margin-left:5px;
+}
+.panel{
+	width:100% !important;
+}
+.panel img{
+	float:left !important;
+	width: 120px;
+	height: 190px;
+	margin: 5px;
+}
+.searchBloc .btn{
+	width:100% !important;
+}
+.searchBloc .panel-title{
+	font-weight: bold;
+}
+.resultTab{
+	background: white;
+	text-align:center;
+}
+.resultTab th{
+	text-align:center;
+	background: #D8D8D8;
+}
+.resultTab .fa-download{
+	color: green;
+	line-height: 1.5;
+}
+.resultTab .fa-times{
+	color: red;
+	line-height: 1.5;
+}
+.resultTab .fa-plug{
+	color: #0083a9;
+	line-height: 1.5;
+}
+.resultTab .fa-star, .fa-star-o{
+	color: #F7D358;
+	line-height: 1.5;
+}
+.resultTab img{
+	width: 55px;
+	height: 80px;
+}
+.resultTab .nameMangaSearch{
+	font-size: 17px;
+	font-weight: 800;
+	text-align:left;
+	line-height: 4.1;
+}
+.bt-disabled{
+    cursor: not-allowed;
+}
+.bt-disabled i{
+	pointer-events:none;
+	color: white !important;
+}
+.form_modify_usrprofil img{
+	width: 100px;
+	height: 100px;
+	margin-bottom: 20px;
+}
+.listpage img{
+	width: 500px !important;
+	height: 600px !important;
+}
+@media (min-width:768px){
+
+  .navbar-default .navbar-nav > li:not(:last-child) {
+    border-right:1px solid #ddd;
+   }
+
+  .navbar-default .navbar-nav > li:not(:first-child) {
+    border-left:1px solid #fff;
+   }
+
+  .navbar-inverse .navbar-nav > li:not(:last-child) {
+    border-right:1px solid #000;
+   }
+
+  .navbar-inverse .navbar-nav > li:not(:first-child) {
+    border-left:1px solid #444;
+   }  
+
+
+}

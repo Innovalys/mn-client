@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Hello World!</title>
+    <style type="text/css">
+    html {
+    	font-family: arial;
+    }
+    </style>
+  </head>
+  <body>
+    <h1>Test manga network</h1>
+
+
+    <input id="manga" type="text" value="naruto" placeholder="Name manga" /><input id="source" value="mangafox.me" placeholder="Source" type="text" /> <input id="search" type="button" value="Search" />
+
+    <pre id="result" ></pre>
+
+    <script type="text/javascript">
+
+		// Load jQuery
+	    window.$ = window.jQuery = require('./jquery-2.1.4.min.js');
+	    // Load our custom framework
+	    require('./MNFramework.js');
+
+	    // Test label
+		var MyLabel = MN.BaseElement.extend({
+			init : function(renderer, values) {
+				this._super();
+				this.renderer = renderer;
+				this.text = values.text;
+			},
+			show : function() {
+				var me = this;
+
+				this.element = $('<span></span>');
+				this.element.html(this.text);
+
+				this.element.on('click', function(e) {
+					me.fireEvent('select', e, me);
+				});
+
+				this.renderer.append(this.element);
+			}
+		});
+
+
+	    var label = new MyLabel($('body'), { text : "Hello world"});
+	    label.on('select', function() {
+	    	alert("Hello");
+	    });
+	    label.show();
+
+	    // Old tests
+		function authHeader(login, password) {
+			return { 'Authorization' : 'Basic ' + btoa(login + ":" + password) }
+		}
+
+		$('#search').on('click', function(e) {
+			var manga = $('#manga').val().trim();
+			var source = $('#source').val().trim();
+
+			$('#result').empty().append('Loading...');
+
+			// Perform the request
+			$.ajax({
+				type: 'GET',
+				url: 'http://localhost/mn-server/manga/search/' + source + '/' + manga,
+				//dataType : 'json',
+				headers : authHeader('test', 'test'),
+				success: function(data) {
+					console.log(data);
+					$('#result').empty().append(JSON.stringify(data, null, 4));
+				},
+				error: function(data) {
+					console.log(data);
+					$('#result').empty().append(data);
+				},
+				fail: function(data) {
+					console.log(data);
+					$('#result').empty().append(data);
+				}
+			});
+		});
+    </script>
+
+  </body>
+</html>
