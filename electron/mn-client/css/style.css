@@ -454,3 +454,8 @@ body{
 .btn.disabled {
 	pointer-events: auto;
 }
+
+.manga-progress {
+	margin-top: 10px;
+	background-color: lightgray;
+}

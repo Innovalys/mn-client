@@ -220,6 +220,20 @@ MN.BaseElement = MN.CallbackHandler.extend({
 	}
 });
 
+MN.handleRequestError = function(response) {
+	console.log(response);
+	if(response.responseJSON && response.responseJSON.data && response.responseJSON.data.message) {
+		MN.notify('Erreur lors du chargement des informations', 'La requête a échouée avec le code <b>' + response.status + '</b>. Le serveur a également indiqué <em>"' + response.responseJSON.data.message + '"</em>', 'error');
+	} else {
+		MN.notify('Erreur lors du chargement des informations', 'La requête a échouée avec le code ' + response.status + '.', 'error');
+	}
+}
+
+MN.handleRequestFail = function(response) {
+	console.log(response);
+	MN.notify('L\'envoie de la requête a échoué', 'Impossible d\'envoyer la requête. Il n\'y a peu être plus de connexion internet.', 'error');
+}
+
 /*
 
 // Exemple of inheritance between two classes
