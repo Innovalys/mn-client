@@ -1,5 +1,9 @@
 MN = window.MN || {};
 
+MN.authHeader = function(login, password) {
+	return { 'Authorization' : 'Basic ' + btoa(login + ":" + password) }
+}
+
 MN.Class = function() {}
 
 /**
@@ -102,6 +106,98 @@ MN.CallbackHandler = MN.Class.extend({
 			}
 		}
 		return this;
+	}
+});
+
+
+/**
+ * Toast handler
+ */
+MN.ToastHandler = MN.Class.extend({
+	init : function(renderer) {
+		this.messages = [];
+		this.renderer = renderer;
+	},
+	add : function(toast) {
+		// Place in the queue
+		this.messages.push(toast);
+
+		if(this.messages.length == 1) {
+			// Display now
+			this._display(this.messages[0]);
+		}
+
+		return this;
+	},
+	_update : function() {
+		if(this.messages.length <= 0)
+			return;
+
+		this._display(this.messages[0]);
+	},
+	_display : function(toast) {
+		var me = this;
+
+		toast.display(this.renderer);
+		toast.on('dissmiss', function() {
+			me.messages.splice(me.messages.indexOf(toast), 1);
+			me._update();
+		});
+	}
+});
+
+MN._toastHandler = new MN.ToastHandler($("#toast_back"));
+
+MN.notify = function(title, message, type, timer) {
+	MN._toastHandler.add(new MN.Toast(title, message, type, timer));
+}
+
+/**
+ * Toast
+ */
+MN.Toast = MN.CallbackHandler.extend({
+	init : function(title, message, type, timer) {
+		this._super();
+		this.title = title;
+		this.message = message;
+		this.type = type ||'info';
+
+		if(!timer) {
+			if(this.type == 'info' || this.type == 'success')
+				this.timer = 4000;
+			else
+				this.timer = 8000;
+		} else
+			this.timer = timer;
+	},
+	display : function(render) {
+		var me = this;
+
+		this.render();
+		render.append(this.content);
+		this.content.addClass('bounce');
+
+		this.fireEvent('display', this);
+
+		setTimeout(function() {
+			me.dissmiss();
+		}, this.timer);
+	},
+	render : function() {
+		this.content = $('<div class="toast bouncy-bottom"></div>');
+		this.content.append($('<h2></h2>').append(this.title));
+		this.content.append($('<p></p>').append(this.message));
+		this.content.addClass(this.type);
+	},
+	dissmiss : function() {
+		var me = this;
+
+		me.content.removeClass('bounce');
+		me.fireEvent('dissmiss', this);
+
+		setTimeout(function() {
+			me.content.remove();
+		}, 1000);
 	}
 });
 
