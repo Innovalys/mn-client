@@ -122,7 +122,6 @@
 				this.renderer = renderer;
 				this.user = values.user;
 				this.manga = values.manga;
-				console.log(values.manga);
 			},
 			_initTitle : function() {
 				var title = $('<h1>' + this.manga.title + '</h1>');
@@ -232,6 +231,28 @@
 				
 				this.infoContainer.append(panel.append(header).append(content));
 			},
+			_initRapidAcces : function() {
+				var me = this;
+				
+				var panel = $('<div class="panel panel-default"></div>');
+				var header = $('<div class="panel-heading"><h3 class="panel-title">Accès rapide à un chapitre</h3></div>');
+				var content = $('<div class="panel-body"></div>');
+				var chapterSelection = $('<select class="form-control"></select>');
+				var chapterButton = $('<button class="btn btn-default" style="margin-left: 5px;">Lire</button>');
+				
+				for(var i = 0; i < this.manga.chapters.length; i++) {
+					var nb = this.manga.chapters[i].nb;
+					var title =this.manga.chapters[i].title;
+					chapterSelection.append('<option value="' + nb + '">Chapitre ' + nb + ' - ' + title + '</option>');
+				}
+				
+				chapterButton.on('click', function(e) {
+					me.fireEvent('manga-read', e, me.manga, chapterSelection.val());
+				});
+				
+				content.append($('<div class="form-inline"></div>').append(chapterSelection).append(chapterButton));
+				this.infoContainer.append(panel.append(header).append(content));
+			},
 			_initRightPanel : function() {
 				this.infoContainer = $('<div class="container col-md-8" ></div>');
 				
@@ -243,6 +264,7 @@
 					
 				this._initInfos();
 				this._initResume();
+				this._initRapidAcces();
 				
 				this.container.append(this.infoContainer)
 			},
@@ -251,8 +273,8 @@
 				
 				var container = $('<div class="container col-md-4" ></div>');
 				var panel = $('<img class="img-responsive" class="container" style="width: 100%; margin-top: 22px" src="' + __path + '/images/cover.jpg" title="' + this.manga.title + '" alt="' + this.manga.title + '" />');
-				var button = $('<button type="button" class="btn btn-primary btn-lg btn-block" style="margin-top: 22px;">' + (this.manga.user_info.page_cur ? 'Reprendre la lecture' : 'Commencer la lecture') + '</button>');
-									
+				var button = $('<button type="button" class="btn btn-primary btn-lg btn-block" style="margin-top: 22px;">' + (this.manga.user_info.chapter_cur ? 'Reprendre la lecture' : 'Commencer la lecture') + '</button>');
+								
 				// Load the real image
 				remote.getCurrentWindow().getFile(user.dir, this.manga.cover, function (path, error) {
 					if(path != null)
@@ -273,8 +295,6 @@
 				var progress = $('<div class="progress manga-progress"></div>');
 				if(this.manga.user_info != null) {
 					var value = 0;
-					
-					console.log(this.manga.user_info);
 					
 					if(this.manga.user_info.chapter_cur) {
 						value = ((0 + this.manga.user_info.chapter_cur) / (0 + this.manga.chapter_nb) * 100).toFixed(1);
@@ -305,8 +325,8 @@
 				this._super();
 				this.renderer = renderer;
 				this.manga = values.manga;
-				this.chapter_nb = this.manga.user_info.chapter_cur ?  this.manga.user_info.chapter_cur : 1;
-				this.page_nb = this.manga.user_info.page_cur;
+				this.chapter_nb = values.chapter ? values.chapter : (this.manga.user_info.chapter_cur ?  this.manga.user_info.chapter_cur : 1);
+				this.page_nb = values.chapter ? null : this.manga.user_info.page_cur;
 			},
 			_initLeftPanel : function() {
 				var me = this;
@@ -321,7 +341,7 @@
 			},
 			_initRightPanel : function() {
 				var me = this;
-				this.mangaPages = $('<div class="container col-md-8" ></div>');
+				this.mangaPages = $('<div class="container row" ></div>');
 				this.controls = $('<div class="container panel-body manga-controls" ></div>');
 				
 				// Controls & images
@@ -413,6 +433,11 @@
 				this.images = [];  // All the images
 				this.image = null; // Current image
 				
+				var loadedPages = 0;
+				var loader = $('<div class="container manga-image alert alert-info" style="width:550px;">Chargement des images en cours...</div>');
+				
+				me.mangaPages.append(loader);
+				
 				this.chapter.pages.forEach(function(page) {
 					var panel = $('<div class="container manga-image"></div>');
 					var image = $('<img class="img-responsive" src="' + __path + '/images/cover.jpg" alt="' + me.chapter.title + '(' + page.page_nb + ')" />');
@@ -423,6 +448,12 @@
 					remote.getCurrentWindow().getFile(user.dir, page.link, function (path, error) {
 						if(path != null)
 							image.attr('src', path);
+						
+						if(++loadedPages >= me.chapter.pages.length) {
+							loader.slideUp(function() {
+								loader.remove();
+							});
+						}
 					});
 					
 					image.on('appear', function(e) {
@@ -469,7 +500,10 @@
 						success: function(data) {
 							me.chapter = data.data;
 							
-							if(me.manga.user_info.chapter_cur != null && me.manga.user_info.chapter_cur < me.chapter_nb) {
+							console.log(me.manga.user_info.chapter_cur);
+							console.log(me.chapter_nb);
+							
+							if(me.manga.user_info.chapter_cur != null && me.manga.user_info.chapter_cur == me.chapter_nb - 1) {
 								// Update the actual chapter for this manga
 								$.ajax({
 									type: 'POST',
@@ -479,6 +513,7 @@
 								    data: JSON.stringify({ chapter : me.chapter_nb }),
 									headers : MN.authHeader(user.login, user.password),
 									success: function(data) {
+										me.manga.user_info.chapter_cur++ ; // Update local data
 										MN.notify('Chapitre mit à jour', 'Le chapitre en cours de lecture a été synchronisé');
 									}, 
 									error: function(response) {
@@ -517,6 +552,7 @@
 				this.renderer = renderer;
 			},
 			_initMangaSearchFields : function() {
+				var me = this;
 				var panel = $('<div class="panel panel-info panel-search"></div>');
 				var header = $('<div class="panel-heading"><h3 class="panel-title">Recherche de manga</h3></div>');
 				var content = $('<div class="panel-body"></div>');
@@ -525,34 +561,54 @@
 				
 				// Source choices
 				var sources = [
-					{ api : 'mangaeden', name : 'Manga Eden' },
-				    { api : 'mangafox', name : 'Manga Fox' },
-					{ api : 'mangastream', name : 'Manga Stream' }
+					{ api : 'all', name : ' Toutes' },
+					{ api : 'mangafox.me', name : ' Manga Fox' },
+				    { api : 'mangareader.net', name : ' Manga Reader' },
+					{ api : 'mangastream.com', name : ' Manga Stream' },
+					{ api : 'mangaeden.com', name : ' Manga Eden' }
 				];
 				
 				var sourceList = $('<li></li>');
-				sourceList.append($('<label>Choisir la ou les source(s)</label>')).append($('<br/>'));
+				var sourceSelected = null;
+				sourceList.append($('<label>Choisir la source</label>')).append($('<br/>'));
 				
 				sources.forEach(function(source) {
-					var sourceBox = $('<input type="checkbox" />');
+					var sourceBox = $('<input type="radio" name="source" value="' + source.api + '" />');
 					sourceList.append(sourceBox).append(source.name).append($('<br/>'));
 					
+					if(source.api == 'all') { // Default value
+						sourceBox.attr("checked", true);
+						sourceSelected = sourceBox;
+					}
+					
 					sourceBox.on('click', function(e) {
-						// TODO
+						sourceSelected = sourceBox;
 					});
 				});
 				values.append(sourceList);
 				
 				// Keywords
 				var keywords = $('<li></li>');
-				keywords.append('<label>Nom du manga :</label>').append('<br/>').append('<input type="text" />');
+				var keywordsInput = $('<input type="text" />');
+				keywords.append('<label>Nom du manga :</label>').append('<br/>').append(keywordsInput);
 				values.append(keywords);
+				
+				keywordsInput.keypress(function(e) {
+					if ( e.which == 13 ) {
+						e.preventDefault();
+						me._search(sourceSelected.val(), keywordsInput.val());
+					}
+				});
 				
 				// Search value
 				var searchField = $('<button type="submit" class="btn btn-default"><i class="fa fa-search"></i></button>');
 				
 				content.append(values).append(searchField);
 				panel.append(header).append(content);
+				
+				searchField.on('click', function(e) {
+					me._search(sourceSelected.val(), keywordsInput.val());
+				});
 				
 				this.searchContainer.append($('<div class="col-md-4"></div>').append(panel));
 			},
@@ -566,16 +622,94 @@
 				this.searchContainer = $('<div class="row searchBlock"></div>');
 				
 				this._initMangaSearchFields();
-				this._initMangaSearchFields();
-				this._initMangaSearchFields();
+				//this._initMangaSearchFields(); TODO
+				//this._initMangaSearchFields(); TODO
 				
 				this.container.append(this.searchContainer);
+			},
+			_initResultsFields : function() {
+				this.resultsContainer = $('<div class="row searchBlock"></div>');
+				var panel = $('<div class="panel panel-default"></div>');
+				var header = $('<div class="panel-heading"><h3 class="panel-title">Résultats de la recherche</h3></div>');
+				this.resultContent = $('<div class="panel-body"></div>');
+				
+				this.container.append(this.resultsContainer.append(panel.append(header).append(this.resultContent)));
+			},
+			_search : function(api, keywords) {
+				var me = this;
+					
+				// Desactivate all the components of the form
+				this.searchContainer.find('*').attr('disabled', true);
+					
+				// Hide existing results
+				this.resultContent.slideUp(function() {
+					
+					// Empty results
+					me.resultContent.empty();
+					
+					// Start timer
+					var start = new Date().getTime();
+					
+					// Perform the request
+					$.ajax({
+						type: 'GET',
+						url: endpoint + 'manga/search/' + api + '/' + encodeURIComponent(keywords),
+						dataType : 'json',
+						headers : MN.authHeader(user.login, user.password),
+						success: function(response) {
+							var end = new Date().getTime();
+							var time = end - start;
+
+							MN.notify("Recherche effectuée", "La recherche a été effectuée avec succès, et a retournée " + response.data.length + ' résultat(s) en ' + time + 'ms');
+							me._showResults(response.data);
+						},
+						error: function(response) {
+							MN.handleRequestError(response);
+						},
+						fail: function(response) {
+							MN.handleRequestFail(response);
+						}
+					}).always(function () {
+						me.searchContainer.find('*').attr('disabled', false);
+					});
+				});
+			},
+			_showResults : function(results) {
+				
+				var resultTable = $('<table class="table table-striped" style="background-color: white;"></table>');
+				
+				// Headers
+				var header = $('<tr></tr>');
+				header.append('<th> Couverture </th>');
+				header.append('<th> Titre </th>');
+				header.append('<th> Source </th>');
+				header.append('<th> Genres </th>');
+				header.append('<th></th>');
+				resultTable.append(header);
+				
+				// Construct the array
+				results.forEach(function(result) {
+					var row = $('<tr></tr>');
+					
+					row.append('<td> [Image] </td>');
+					row.append('<td>' + result.title + '</td>');
+					row.append('<td>' + result.source_URL + '</td>');
+					row.append('<td> [Genres] </td>');
+					row.append('<td> [Commandes] </td>');
+					
+					resultTable.append(row);
+				});
+				
+				
+				this.resultContent.append(resultTable);
+				this.resultContent.slideDown();
 			},
 			show : function() {
 				this._super(function() {
 					this.container = $('<div class="container" ></div>');
 	
 					this._initSearchFields();
+					this._initResultsFields();
 					
 					this.renderer.append(this.container);
 				});
@@ -630,7 +764,7 @@
 				// Perform the request
 				$.ajax({
 					type: 'GET',
-					url: 'http://localhost/mn-server/user/mangas/' + user.id,
+					url: endpoint + 'user/mangas/' + user.id,
 					dataType : 'json',
 					headers : MN.authHeader(user.login, user.password),
 					success: function(data) {
@@ -702,9 +836,9 @@
 				
 				return mangainfo;
 			},
-			'manga-read' : function(e, manga) {
+			'manga-read' : function(e, manga, chapter) {
 				// Show home page
-				var mangareader = new MangaChapter(page, { manga : manga });
+				var mangareader = new MangaChapter(page, { manga : manga, chapter : chapter });
 				mangareader.show();
 				
 				return mangareader;
