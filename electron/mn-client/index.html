@@ -292,18 +292,19 @@
 					});
 				}
 				
-				var progress = $('<div class="progress manga-progress"></div>');
-				if(this.manga.user_info != null) {
-					var value = 0;
+				container.append(panel).append(button);
+				
+				// Optionnal info if in a collection
+				if(this.manga.user_info != null && this.manga.user_info.chapter_cur) {
+					var progress = $('<div class="progress manga-progress" style="margin-top : 0px;"></div>');
+					var value = ((0 + this.manga.user_info.chapter_cur) / (0 + this.manga.chapter_nb) * 100).toFixed(1);
+					var progressInfo = $('<div style="text-align: center; padding-top: 10px;">Chapitre ' + this.manga.user_info.chapter_cur + '/' + this.manga.chapter_nb + ' (' + value + '%)</div>');
 					
-					if(this.manga.user_info.chapter_cur) {
-						value = ((0 + this.manga.user_info.chapter_cur) / (0 + this.manga.chapter_nb) * 100).toFixed(1);
-					}
-					
-					progress.append($('<div class="progress-bar" role="progressbar" style="min-width: 2em; width: ' + value + '%;">' + value + '%</div>'));
+					progress.append($('<div class="progress-bar" role="progressbar" style="min-width: 2em; width: ' + value + '%;"></div>'));
+					container.append(progressInfo).append(progress);
 				}
 				
-				this.container.append(container.append(panel).append(button).append(progress));
+				this.container.append(container);
 			},
 			show : function() {
 				this._super(function() {
