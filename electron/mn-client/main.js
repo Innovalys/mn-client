@@ -2,6 +2,7 @@ var app = require('app');  // Module to control application life.
 var BrowserWindow = require('browser-window');  // Module to create native browser window.
 var fs = require('fs'); // Used to read local files
 var http   = require('http');
+var dialog = require('dialog');
 
 //var request = require('./request/request.js');
 var crypto = require('crypto'); // Used to read local files
@@ -63,10 +64,19 @@ app.on('ready', function() {
   mainWindow.getPath = function () {
     return __dirname;
   };
+  
+  mainWindow.exportFiles = function(files) {
+    
+    dialog.showSaveDialog(mainWindow, { title : "Emplacement de la sauvegarde" }, function(filename) {
+      if(filename) {
+         console.log(filename);
+      }
+    });
+    
+  };
 
   // and load the index.html of the app.
   mainWindow.loadUrl('file://' + __dirname + '/index.html');
-  
     
     mainWindow.getFile = function(dir, url, clbk) {
 
@@ -83,12 +93,12 @@ app.on('ready', function() {
       fs.readFile(filename, 'utf8', function (err, data) {
         if (!err) {
           // Open localy the file
-          console.log("File localy loaded");
+          console.log("File localy loaded : " + url);
           clbk(filename, null);
         } else {
           // Download & save the file
           download(url, filename, function(ok, error) {
-            console.log("File downloaded");
+            console.log("File downloaded" + url);
             clbk(ok ? filename : null, error);
           });
         }

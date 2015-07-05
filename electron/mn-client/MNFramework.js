@@ -210,13 +210,34 @@ MN.BaseElement = MN.CallbackHandler.extend({
 		this.renderer = renderer;
 		// Used to initialize the element
 	},
-	show : function() {
-		// Used to display the element
-		// in the renderer
+	loading_start : function(onEnd) {
+		this.renderer.append($('<div class="loader">Loading...</div>')).append('<div class="container loader-text">Chargement en cours...</div>');
+		this.renderer.fadeIn(200);
+		
+		this._tmp_renderer = this.renderer;
+		this.renderer = $('<div></div>');
 	},
-	remove : function() {
-		// Used to remove the element from
-		// the renderer
+	loading_stop : function(onEnd) {
+		var me = this;
+		
+		this._tmp_renderer.fadeOut(200, function() {
+			me._tmp_renderer.empty();
+			me._tmp_renderer.append(me.renderer.children());
+			
+			me.renderer = me._tmp_renderer;
+			me._tmp_renderer = undefined;
+			
+			me.renderer.fadeIn(200);
+		});
+	},
+	show : function(_show) {
+		var me = this;
+		
+		this.renderer.fadeOut(200, function() {
+			me.renderer.empty();
+			_show.apply(me);
+			me.renderer.fadeIn(200);
+		});
 	}
 });
 
@@ -233,6 +254,17 @@ MN.handleRequestFail = function(response) {
 	console.log(response);
 	MN.notify('L\'envoie de la requête a échoué', 'Impossible d\'envoyer la requête. Il n\'y a peu être plus de connexion internet.', 'error');
 }
+
+// Allow to use a config object to handle actions
+MN.actionHandler = function(actions, element) {
+	$.each(actions, function(action, handler) {
+		element.on(action, function() {
+			var newElement = handler.apply(element, arguments);
+			MN.actionHandler(actions, newElement);
+		});
+	});
+};
+		
 
 /*
 
