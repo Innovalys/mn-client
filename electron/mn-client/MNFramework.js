@@ -1,6 +1,7 @@
-
+// Requires
 var moment = require('moment');
 
+// Framework definition
 MN = window.MN || {};
 
 MN.authHeader = function(login, password) {
@@ -208,9 +209,9 @@ MN.Toast = MN.CallbackHandler.extend({
  * Base class for every element
  */
 MN.BaseElement = MN.CallbackHandler.extend({
-	init : function(renderer) {
+	init : function() {
 		this._super();
-		this.renderer = renderer;
+		this.renderer = $('<div></div>');;
 		// Used to initialize the element
 	},
 	loading_start : function(onEnd) {
@@ -233,6 +234,61 @@ MN.BaseElement = MN.CallbackHandler.extend({
 			me.renderer.fadeIn(200);
 		});
 	},
+	initView : function() {
+		
+	},
+	updateView : function() {
+		
+	},
+	getView : function() {
+		return this.renderer();
+	}
+});
+
+
+		// Defines the actions
+		var actions = {
+			'search' : function(e) {
+				// Show search
+				var search = new Search();
+				search.show();
+				
+				return search;
+			},
+			'homepage' : function(e) {
+				// Show home page
+				var hp = new HomePage();
+				hp.show();
+				
+				return hp;
+			},
+			'manga' : function(e, manga, needReload) {
+				// Show home page
+				var mangainfo = new MangaInfo({ manga : manga, needReload : needReload});
+				mangainfo.show();
+				
+				return mangainfo;
+			},
+			'manga-read' : function(e, manga, chapter) {
+				// Show home page
+				var mangareader = new MangaChapter({ manga : manga, chapter : chapter });
+				mangareader.show();
+				
+				return mangareader;
+			}
+		};
+
+// Allow to use a config object to handle actions
+MN.actionHandler = function(actions, element) {
+	$.each(actions, function(action, handler) {
+		element.on(action, function() {
+			var newElement = handler.apply(element, arguments);
+			MN.actionHandler(actions, newElement);
+		});
+	});
+};
+
+/*
 	show : function(_show) {
 		var me = this;
 		
@@ -242,7 +298,7 @@ MN.BaseElement = MN.CallbackHandler.extend({
 			me.renderer.fadeIn(200);
 		});
 	}
-});
+*/
 
 MN.handleRequestError = function(response) {
 	console.log(response);
@@ -275,8 +331,8 @@ MN.formatDate = function(time) {
 	else
 		return moment(time, 'YYYY-MM-DD hh:mm:ss', 'fr').fromNow();
 }
-/*
 
+/*
 // Exemple of inheritance between two classes
 
 var A = Class.extend({
