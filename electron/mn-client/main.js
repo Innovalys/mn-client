@@ -2,6 +2,7 @@ var app = require('app');  // Module to control application life.
 var BrowserWindow = require('browser-window');  // Module to create native browser window.
 var fs = require('fs'); // Used to read local files
 var http   = require('http');
+var https   = require('https');
 var dialog = require('dialog');
 
 //var request = require('./request/request.js');
@@ -20,7 +21,7 @@ var fileExtension = function( url ) {
 
 var download = function(url, filename, callback){
   
-  var req = http.request(url, function(res) {
+  var req = (url.startsWith('https') ? https : http).request(url, function(res) {
     
     if(res.statusCode != 200) {
       callback(false, req);
@@ -101,7 +102,7 @@ app.on('ready', function() {
         } else {
           // Download & save the file
           download(url, filename, function(ok, error) {
-            console.log("File downloaded" + url);
+            console.log("File downloaded : " + url);
             clbk(ok ? filename : null, error);
           });
         }
