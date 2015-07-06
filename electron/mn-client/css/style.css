@@ -91,7 +91,6 @@ body{
 }
 .panel img{
 	float:left !important;
-	width: 120px;
 	height: 190px;
 	margin: 5px;
 }

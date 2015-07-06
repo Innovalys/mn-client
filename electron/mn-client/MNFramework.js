@@ -1,3 +1,6 @@
+
+var moment = require('moment');
+
 MN = window.MN || {};
 
 MN.authHeader = function(login, password) {
@@ -266,6 +269,12 @@ MN.actionHandler = function(actions, element) {
 };
 		
 
+MN.formatDate = function(time) {
+	if(time == '0000-00-00 00:00:00')
+		return '[Aucune date disponible]';
+	else
+		return moment(time, 'YYYY-MM-DD hh:mm:ss', 'fr').fromNow();
+}
 /*
 
 // Exemple of inheritance between two classes

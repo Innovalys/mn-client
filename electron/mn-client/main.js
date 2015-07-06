@@ -79,6 +79,9 @@ app.on('ready', function() {
   mainWindow.loadUrl('file://' + __dirname + '/index.html');
     
     mainWindow.getFile = function(dir, url, clbk) {
+      
+      if(!url || url == '')
+        clbk(null, 'No URL provided');
 
       // Create the directory if it doesn't exist
       dir = __dirname + '/' + dir;
