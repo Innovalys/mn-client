@@ -943,7 +943,6 @@
 			},
 			'manga' : function(e, manga, needReload) {
 				// Show home page
-				console.log(manga);
 				return new MangaInfo({ manga : manga, needReload : needReload});
 			},
 			'manga-read' : function(e, manga, chapter) {
@@ -955,7 +954,7 @@
 		var navBar = new NavBar($('body'), {});
 		navBar.show();
 		
-		var actionHandler = new MN.actionHandler(actions, page, navBar);
+		new MN.ActionHandler(actions, page).start(navBar);
 		
 		// When all the page is loaded, add our container and launch
 		$( document ).ready(function() {

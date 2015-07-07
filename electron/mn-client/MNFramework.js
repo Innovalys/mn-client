@@ -263,13 +263,14 @@ MN.BaseElement = MN.CallbackHandler.extend({
 
 // Allow to use a config object to handle actions
 MN.actionHandler = MN.Class.extend({
-	init : function(actions, renderer, firstView) {
+	init : function(actions, renderer) {
 		this.inAction = false;
 		this.stack = [];
 		this.renderer = renderer;
 		this.actions = actions;
+	},
+	start : function(firstView) {
 		this.actualView = firstView;
-		
 		this._update(firstView);
 	},
 	_showView : function(view, clbk) {
