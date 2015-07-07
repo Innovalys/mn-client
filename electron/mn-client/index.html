@@ -387,6 +387,7 @@
 				var me = this;
 				
 				this.loading_start();
+				this.container.empty();
 
 				// Perform the request
 				$.ajax({
@@ -585,6 +586,7 @@
 			updateView : function() {
 				var me = this;
 				this.loading_start();
+				this.container.empty();
 				
 				// Perform the request
 				$.ajax({
@@ -941,6 +943,7 @@
 			},
 			'manga' : function(e, manga, needReload) {
 				// Show home page
+				console.log(manga);
 				return new MangaInfo({ manga : manga, needReload : needReload});
 			},
 			'manga-read' : function(e, manga, chapter) {
@@ -952,8 +955,7 @@
 		var navBar = new NavBar($('body'), {});
 		navBar.show();
 		
-			console.log(actions);
-		MN.actionHandler(actions, navBar, page);
+		var actionHandler = new MN.actionHandler(actions, page, navBar);
 		
 		// When all the page is loaded, add our container and launch
 		$( document ).ready(function() {

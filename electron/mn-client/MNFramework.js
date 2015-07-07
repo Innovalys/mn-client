@@ -248,7 +248,7 @@ MN.BaseElement = MN.CallbackHandler.extend({
 		// Default empty init
 	},
 	updateView : function() {
-		// Default empty update
+		
 	},
 	getView : function() {
 		return this.renderer;
@@ -260,117 +260,117 @@ MN.BaseElement = MN.CallbackHandler.extend({
 		return true;
 	}
 });
-	
-var inAction = false;
-var stack = [];
 
 // Allow to use a config object to handle actions
-MN.actionHandler = function(actions, actualView, renderer) {
-	
-	$('html').unbind('keydown');
-	$('html').on('keydown', function(e) {
-	    if(e.which === 116) {
-			e.preventDefault();
-			
-			if(inAction) return;
-			inAction = true; // Avoid multiple action at the same time
-			
-			// Always keep at least a stacked view
-			if(stack.length > 0) {
-				// Get the previous view, and re-display it
-				var view = actualView;
-				var viewElement = view.getView();
-				view.updateView();
-			
-				console.log('Reloading view ' + view.getId());
-						
-				renderer.fadeOut(200).promise().always(function() {
-					renderer.children().detach();
-					renderer.append(viewElement);
-					renderer.fadeIn(200).promise().always(function() {
-						inAction = false;
-					});
-				});
-			} else
-				inAction = false; // Cancel
-	    } else if(e.keyCode == 8) {
-    		var doPrevent = false;
-	        var d = event.srcElement || event.target;
-	        if ((d.tagName.toUpperCase() === 'INPUT' && 
-	             (
-	                 d.type.toUpperCase() === 'TEXT' ||
-	                 d.type.toUpperCase() === 'PASSWORD' || 
-	                 d.type.toUpperCase() === 'FILE' || 
-	                 d.type.toUpperCase() === 'EMAIL' || 
-	                 d.type.toUpperCase() === 'SEARCH' || 
-	                 d.type.toUpperCase() === 'DATE' )
-	             ) || 
-	             d.tagName.toUpperCase() === 'TEXTAREA') {
-	            doPrevent = d.readOnly || d.disabled;
-	        } else {
-	            doPrevent = true;
-	        }
-			
-			if(doPrevent) {
+MN.actionHandler = MN.Class.extend({
+	init : function(actions, renderer, firstView) {
+		this.inAction = false;
+		this.stack = [];
+		this.renderer = renderer;
+		this.actions = actions;
+		this.actualView = firstView;
+		
+		this._update(firstView);
+	},
+	_showView : function(view, clbk) {
+		var me = this;
+		
+		var viewElement = view.getView();
+		view.updateView();
+		
+		this.renderer.fadeOut(200).promise().always(function() {
+			me.renderer.children().detach();
+			me.renderer.append(viewElement);
+			me.renderer.scrollTop(0);
+			me.renderer.fadeIn(200).promise().always(function() {
+				clbk(view);
+			});
+		});
+	},
+	_update : function() {
+		var me = this;
+		
+		$('html').unbind('keydown');
+		$('html').on('keydown', function(e) {
+		    if(e.which === 116) {
 				e.preventDefault();
 				
-				if(inAction) return;
-				inAction = true; // Avoid multiple action at the same time
+				if(me.inAction) return;
+				me.inAction = true; // Avoid multiple action at the same time
 				
-				// Always keep at least a stacked view
-				if(stack.length > 0) {
-					// Get the previous view, and re-display it
-					var view = stack.pop();
-					var viewElement = view.getView();
-					view.updateView();
+				console.log('Reloading view ' + me.actualView.getId());
 				
-					console.log('Resuming view ' + view.getId());
-							
-					renderer.fadeOut(200).promise().always(function() {
-						renderer.children().detach();
-						renderer.append(viewElement);
-						renderer.fadeIn(200).promise().always(function() {
-							inAction = false;
+				// Get the previous view, and re-display it
+				me._showView(me.actualView, function(view) {
+					me.inAction = false;
+				});
+		    } else if(e.keyCode == 8) {
+	    		var doPrevent = false;
+		        var d = event.srcElement || event.target;
+		        if ((d.tagName.toUpperCase() === 'INPUT' && 
+		             (
+		                 d.type.toUpperCase() === 'TEXT' ||
+		                 d.type.toUpperCase() === 'PASSWORD' || 
+		                 d.type.toUpperCase() === 'FILE' || 
+		                 d.type.toUpperCase() === 'EMAIL' || 
+		                 d.type.toUpperCase() === 'SEARCH' || 
+		                 d.type.toUpperCase() === 'DATE' )
+		             ) || 
+		             d.tagName.toUpperCase() === 'TEXTAREA') {
+		            doPrevent = d.readOnly || d.disabled;
+		        } else {
+		            doPrevent = true;
+		        }
+				
+				if(doPrevent) {
+					e.preventDefault();
+					
+					if(me.inAction) return;
+					me.inAction = true; // Avoid multiple action at the same time
+					
+					// Always keep at least a stacked view
+					if(me.stack.length > 0) {
+						// Get the previous view, and re-display it
+						me.actualView = me.stack.pop();
+						
+						console.log('Resuming view ' + me.actualView.getId());
+						
+						me._showView(me.actualView, function(view) {
+							me.inAction = false;
 						});
-					});
-				} else
-					inAction = false; // Cancel
+					} else
+						me.inAction = false; // Cancel
+				}
 			}
-		}
-	});
-	
-	// Bind the actions
-	$.each(actions, function(action, handler) {
-		actualView.on(action, function() {
-			
-			if(inAction) return;
-			inAction = true; // Avoid multiple action at the same time
-			
-			// TODO : fix navbar handling
-			// Save the actual view to the stack
-			if(actualView.isSavable())
-				stack.push(actualView);
-			
-			// Create a new view, and happend to the renderer
-			var view = handler.apply(actualView, arguments);
-			view.initView();
-			var viewElement = view.getView();
-			view.updateView();
+		});
+		
+		// Bind the actions
+		$.each(me.actions, function(action, handler) {
+			me.actualView.on(action, function() {
 				
-			console.log('Creating view ' + view.getId());
+				if(me.inAction) return;
+				me.inAction = true; // Avoid multiple action at the same time
 				
-			renderer.fadeOut(200).promise().always(function() {
-				renderer.children().detach();
-				renderer.append(viewElement);
-				renderer.fadeIn(200).promise().always(function() {
-					inAction = false;
-					MN.actionHandler(actions, view, renderer);
+				// Save the actual view to the stack
+				if(me.actualView.isSavable())
+					me.stack.push(me.actualView);
+				
+				// Create a new view, and happend to the renderer
+				var view = handler.apply(handler, arguments);
+				view.initView();
+					
+				console.log('Creating view ' + view.getId());
+					
+				me._showView(view, function(view) {
+					me.inAction = false;
+					
+					me.actualView = view;
+					me._update();
 				});
 			});
-			
 		});
-	});
-};
+	}
+});
 
 // handle for a bad request response
 MN.handleRequestError = function(response) {
