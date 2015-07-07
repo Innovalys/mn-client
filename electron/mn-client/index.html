@@ -17,7 +17,7 @@
 	    require('./MNFramework.js');
 		var remote = require('remote');
 		var __path = remote.getCurrentWindow().getPath();
-		var endpoint = 'http://test.vuzi.fr:8080/mn-server/';
+		var endpoint = 'http://localhost/mn-server/';
 
 		// DEBUG
 		$( document ).ready(function() {	
@@ -110,6 +110,9 @@
 
 				this.renderer.append(this.container);
 				this.container.slideDown();
+			},
+			isSavable : function() {
+				return false;
 			}
 		});
 		
@@ -117,9 +120,9 @@
 		// ---------------------------
 		// View displaying informations about the selected manga
 		var MangaInfo = MN.BaseElement.extend({
-			init : function(renderer, values) {
+			init : function(values) {
 				this._super();
-				this.renderer = renderer;
+				this.id = "manga info";
 				this.manga = values.manga;
 				this.needReload = values.needReload || false;
 			},
@@ -322,8 +325,7 @@
 						dataType : 'json',
 						headers : MN.authHeader(user.login, user.password),
 						success: function(data) {
-							me.needReload = true; // Force reloading
-							me.show();
+							me.fireEvent('manga', null, me.manga);
 							MN.notify('Informations mises à jour', 'Le manga a été ajouté avec succès à la collection');
 						}, 
 						error: function(response) {
@@ -340,8 +342,7 @@
 						dataType : 'json',
 						headers : MN.authHeader(user.login, user.password),
 						success: function(data) {
-							me.needReload = true; // Force reloading
-							me.show();
+							me.fireEvent('manga', null, me.manga);
 							MN.notify('Informations mises à jour', 'Le manga a été retiré de la collection avec succès');
 						}, 
 						error: function(response) {
@@ -359,7 +360,6 @@
 					
 				var me = this;
 				
-				// Update the actual chapter for this manga
 				$.ajax({
 					type: 'POST',
 					url: endpoint + 'user/manga/' + me.manga.id,
@@ -368,8 +368,7 @@
 				    data: JSON.stringify({ favoris : me.manga.user_info.favoris ? false : true }),
 					headers : MN.authHeader(user.login, user.password),
 					success: function(data) {
-						me.needReload = true; // Force reloading
-						me.show();
+						me.fireEvent('manga', null, me.manga);
 						MN.notify('Informations mises à jour', 'Les informations ont correctement été synchronisées');
 					}, 
 					error: function(response) {
@@ -380,44 +379,35 @@
 					}
 				});
 			},
-			show : function() {
-				var me = this;
+			initView : function() {
 				this.container = $('<div class="container" ></div>');
+				this.renderer.append(this.container);
+			},
+			updateView : function() {
+				var me = this;
+				
+				this.loading_start();
+
+				// Perform the request
+				$.ajax({
+					type: 'GET',
+					url: endpoint + 'manga/' + this.manga.source_URL + '/' + this.manga.source_ID,
+					dataType : 'json',
+					headers : MN.authHeader(user.login, user.password),
+					success: function(data) {
+						me.manga = data.data;
+						me.needReload = false;
 						
-				this._super(function() {
-					if(this.needReload) {
-						
-						this.loading_start();
-		
-						// Perform the request
-						$.ajax({
-							type: 'GET',
-							url: endpoint + 'manga/' + this.manga.source_URL + '/' + this.manga.source_ID,
-							dataType : 'json',
-							headers : MN.authHeader(user.login, user.password),
-							success: function(data) {
-								me.manga = data.data;
-								me.needReload = false;
-								
-								me._initLeftPanel();  // Info & buttons
-								me._initRightPanel(); // Pages
-						
-								me.loading_stop();
-							},
-							error: function(response) {
-								MN.handleRequestError(response);
-							},
-							fail: function(response) {
-								MN.handleRequestFail(response);
-							}
-						});
-						
-						this.renderer.append(this.container);
-					} else {
-						this._initLeftPanel();
-						this._initRightPanel();
-						
-						this.renderer.append(this.container);
+						me._initLeftPanel();  // Info & buttons
+						me._initRightPanel(); // Pages
+				
+						me.loading_stop();
+					},
+					error: function(response) {
+						MN.handleRequestError(response);
+					},
+					fail: function(response) {
+						MN.handleRequestFail(response);
 					}
 				});
 			}
@@ -427,9 +417,9 @@
 		// ---------------------------
 		// View allowing the user to read a page for a chapter of a manga
 		var MangaChapter = MN.BaseElement.extend({
-			init : function(renderer, values) {
+			init : function(values) {
 				this._super();
-				this.renderer = renderer;
+				this.id = 'chapter reader';
 				this.manga = values.manga;
 				this.chapter_nb = values.chapter ? values.chapter : (this.manga.user_info.chapter_cur ?  this.manga.user_info.chapter_cur : 1);
 				this.page_nb = values.chapter ? null : this.manga.user_info.page_cur;
@@ -462,16 +452,14 @@
 					prevChapter.attr('disabled', true);
 				else
 					prevChapter.on('click', function(e) {
-						me.chapter_nb--;
-						me.show();
+						me.fireEvent('manga-read', e, me.manga, me.chapter_nb - 1);
 					});
 										
 				if(this.chapter_nb >= this.manga.chapter_nb)
 					nextChapter.attr('disabled', true);
 				else
 					nextChapter.on('click', function(e) {
-						me.chapter_nb++;
-						me.show();
+						me.fireEvent('manga-read', e, me.manga, me.chapter_nb + 1);
 					});
 					
 				this.mangaPages.append($('<div class="container manga-image"></div>').append($('<div class="btn-group"></div>').append(prevChapter).append(nextChapter)));
@@ -590,58 +578,56 @@
 					
 				});
 			},
-			show : function() {
-				this._super(function() {
-					var me = this;
-					this.container = $('<div class="container" ></div>');
-	
-					this.loading_start();
-	
-					// Perform the request
-					$.ajax({
-						type: 'GET',
-						url: endpoint + 'user/manga/id/' + this.manga.id + '/' + this.chapter_nb,
-						dataType : 'json',
-						headers : MN.authHeader(user.login, user.password),
-						success: function(data) {
-							me.chapter = data.data;
-							
-							if(me.manga.user_info.chapter_cur != null && me.manga.user_info.chapter_cur == me.chapter_nb - 1) {
-								// Update the actual chapter for this manga
-								$.ajax({
-									type: 'POST',
-									url: endpoint + 'user/manga/' + me.manga.id,
-									dataType : 'json',
-								    contentType: 'application/json',
-								    data: JSON.stringify({ chapter : me.chapter_nb }),
-									headers : MN.authHeader(user.login, user.password),
-									success: function(data) {
-										me.manga.user_info.chapter_cur++ ; // Update local data
-										MN.notify('Chapitre mis à jour', 'Le chapitre en cours de lecture a été synchronisé');
-									}, 
-									error: function(response) {
-										MN.handleRequestError(response);
-									},
-									fail: function(response) {
-										MN.handleRequestFail(response);
-									}
-								});
-							}
-							
-							me._initLeftPanel();  // Info & buttons
-							me._initRightPanel(); // Pages
-							
-							me.loading_stop();
-						},
-						error: function(response) {
-							MN.handleRequestError(response);
-						},
-						fail: function(response) {
-							MN.handleRequestFail(response);
+			initView : function() {
+				this.container = $('<div class="container" ></div>');
+				this.renderer.append(this.container);
+			},
+			updateView : function() {
+				var me = this;
+				this.loading_start();
+				
+				// Perform the request
+				$.ajax({
+					type: 'GET',
+					url: endpoint + 'user/manga/id/' + this.manga.id + '/' + this.chapter_nb,
+					dataType : 'json',
+					headers : MN.authHeader(user.login, user.password),
+					success: function(data) {
+						me.chapter = data.data;
+						
+						if(me.manga.user_info.chapter_cur != null && me.manga.user_info.chapter_cur == me.chapter_nb - 1) {
+							// Update the actual chapter for this manga
+							$.ajax({
+								type: 'POST',
+								url: endpoint + 'user/manga/' + me.manga.id,
+								dataType : 'json',
+							    contentType: 'application/json',
+							    data: JSON.stringify({ chapter : me.chapter_nb }),
+								headers : MN.authHeader(user.login, user.password),
+								success: function(data) {
+									me.manga.user_info.chapter_cur++ ; // Update local data
+									MN.notify('Chapitre mis à jour', 'Le chapitre en cours de lecture a été synchronisé');
+								}, 
+								error: function(response) {
+									MN.handleRequestError(response);
+								},
+								fail: function(response) {
+									MN.handleRequestFail(response);
+								}
+							});
 						}
-					});
-					
-					me.renderer.append(me.container);
+						
+						me._initLeftPanel();  // Info & buttons
+						me._initRightPanel(); // Pages
+						
+						me.loading_stop();
+					},
+					error: function(response) {
+						MN.handleRequestError(response);
+					},
+					fail: function(response) {
+						MN.handleRequestFail(response);
+					}
 				});
 			}
 		});
@@ -650,9 +636,9 @@
 		// ---------------------------
 		// View for searching manga or authors
 		var Search = MN.BaseElement.extend({
-			init : function(renderer, values) {
+			init : function(values) {
 				this._super();
-				this.renderer = renderer;
+				this.id = 'advanced search';
 			},
 			_initMangaSearchFields : function() {
 				var me = this;
@@ -799,7 +785,6 @@
 					
 					image.on('click', function(e) {
 						// Load the selected manga
-						
 						me.fireEvent("manga", e, result, true);
 					});
 					
@@ -834,19 +819,16 @@
 					resultTable.append(row);
 				});
 				
-				
 				this.resultContent.append(resultTable);
 				this.resultContent.slideDown();
 			},
-			show : function() {
-				this._super(function() {
-					this.container = $('<div class="container" ></div>');
-	
-					this._initSearchFields();
-					this._initResultsFields();
-					
-					this.renderer.append(this.container);
-				});
+			initView : function() {
+				this.container = $('<div class="container" ></div>');
+
+				this._initSearchFields();
+				this._initResultsFields();
+				
+				this.renderer.append(this.container);
 			}
 		});
 		
@@ -854,9 +836,9 @@
 		// ---------------------------
 		// View displaying general informations
 		var HomePage = MN.BaseElement.extend({
-			init : function(renderer, values) {
+			init : function(values) {
 				this._super();
-				this.renderer = renderer;
+				this.id = "homepage";
 			},
 			_initLastFavoris : function() {
 				var panel = $('<div class="panel panel-default"></div>');
@@ -925,19 +907,19 @@
 					}
 				});
 			},
-			show : function() {
-				this._super(function() {
-					this.container = $('<div class="container"></div>');
-					this.firstLine = $('<div class="row"></div>');
-					this.secondLine = $('<div class="row"></div>');
-	
-					this._initLastFavoris();
-					this._initLastNonFavoris();
-					
-					this.renderer.append(this.container.append(this.firstLine).append(this.secondLine));
-					
-					this._updateValues();
-				});
+			initView : function() {
+				this.container = $('<div class="container"></div>');
+				this.firstLine = $('<div class="row"></div>');
+				this.secondLine = $('<div class="row"></div>');
+
+				this._initLastFavoris();
+				this._initLastNonFavoris();
+				
+				this.renderer.append(this.container.append(this.firstLine).append(this.secondLine));
+			},
+			updateView : function() {
+				// Update displayed values
+				this._updateValues();
 			}
 		});
 		
@@ -951,49 +933,36 @@
 		var actions = {
 			'search' : function(e) {
 				// Show search
-				var search = new Search(page);
-				search.show();
-				
-				return search;
+				return new Search();
 			},
 			'homepage' : function(e) {
 				// Show home page
-				var hp = new HomePage(page);
-				hp.show();
-				
-				return hp;
+				return new HomePage();
 			},
 			'manga' : function(e, manga, needReload) {
 				// Show home page
-				var mangainfo = new MangaInfo(page, { manga : manga, needReload : needReload});
-				mangainfo.show();
-				
-				return mangainfo;
+				return new MangaInfo({ manga : manga, needReload : needReload});
 			},
 			'manga-read' : function(e, manga, chapter) {
 				// Show home page
-				var mangareader = new MangaChapter(page, { manga : manga, chapter : chapter });
-				mangareader.show();
-				
-				return mangareader;
+				return new MangaChapter({ manga : manga, chapter : chapter });
 			}
 		};
-		
 		
 		var navBar = new NavBar($('body'), {});
 		navBar.show();
 		
-		MN.actionHandler(actions, navBar);
+			console.log(actions);
+		MN.actionHandler(actions, navBar, page);
 		
 		// When all the page is loaded, add our container and launch
 		$( document ).ready(function() {
 			// Append page renderer
 			$('body').append(page);
+			console.log("Application launching done");
 			
 			// Show homepage
 			navBar.fireEvent('homepage');
-			
-			console.log("Application launching done");
 		});
 		
     </script>

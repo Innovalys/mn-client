@@ -215,19 +215,29 @@ MN.BaseElement = MN.CallbackHandler.extend({
 		// Used to initialize the element
 	},
 	loading_start : function(onEnd) {
+		var me = this;
+		// Hide and empty
+		this._tmp_renderer = $('<span></span>');
+		this._tmp_renderer.append(this.renderer.children());
+		
+		// Show spinner
 		this.renderer.append($('<div class="loader">Loading...</div>')).append('<div class="container loader-text">Chargement en cours...</div>');
 		this.renderer.fadeIn(200);
 		
+		// Swap the tmp renderer and the real one
+		var tmp = this._tmp_renderer;
 		this._tmp_renderer = this.renderer;
-		this.renderer = $('<div></div>');
+		this.renderer = tmp;
 	},
 	loading_stop : function(onEnd) {
 		var me = this;
 		
-		this._tmp_renderer.fadeOut(200, function() {
+		this._tmp_renderer.fadeOut(200).promise().always(function() {
+			// Empty the real renderer and append the real content
 			me._tmp_renderer.empty();
 			me._tmp_renderer.append(me.renderer.children());
 			
+			// Swap back
 			me.renderer = me._tmp_renderer;
 			me._tmp_renderer = undefined;
 			
@@ -235,71 +245,134 @@ MN.BaseElement = MN.CallbackHandler.extend({
 		});
 	},
 	initView : function() {
-		
+		// Default empty init
 	},
 	updateView : function() {
-		
+		// Default empty update
 	},
 	getView : function() {
-		return this.renderer();
+		return this.renderer;
+	},
+	getId : function() {
+		return this.id || 'Default view';
+	},
+	isSavable : function() {
+		return true;
 	}
 });
-
-
-		// Defines the actions
-		var actions = {
-			'search' : function(e) {
-				// Show search
-				var search = new Search();
-				search.show();
-				
-				return search;
-			},
-			'homepage' : function(e) {
-				// Show home page
-				var hp = new HomePage();
-				hp.show();
-				
-				return hp;
-			},
-			'manga' : function(e, manga, needReload) {
-				// Show home page
-				var mangainfo = new MangaInfo({ manga : manga, needReload : needReload});
-				mangainfo.show();
-				
-				return mangainfo;
-			},
-			'manga-read' : function(e, manga, chapter) {
-				// Show home page
-				var mangareader = new MangaChapter({ manga : manga, chapter : chapter });
-				mangareader.show();
-				
-				return mangareader;
-			}
-		};
+	
+var inAction = false;
+var stack = [];
 
 // Allow to use a config object to handle actions
-MN.actionHandler = function(actions, element) {
+MN.actionHandler = function(actions, actualView, renderer) {
+	
+	$('html').unbind('keydown');
+	$('html').on('keydown', function(e) {
+	    if(e.which === 116) {
+			e.preventDefault();
+			
+			if(inAction) return;
+			inAction = true; // Avoid multiple action at the same time
+			
+			// Always keep at least a stacked view
+			if(stack.length > 0) {
+				// Get the previous view, and re-display it
+				var view = actualView;
+				var viewElement = view.getView();
+				view.updateView();
+			
+				console.log('Reloading view ' + view.getId());
+						
+				renderer.fadeOut(200).promise().always(function() {
+					renderer.children().detach();
+					renderer.append(viewElement);
+					renderer.fadeIn(200).promise().always(function() {
+						inAction = false;
+					});
+				});
+			} else
+				inAction = false; // Cancel
+	    } else if(e.keyCode == 8) {
+    		var doPrevent = false;
+	        var d = event.srcElement || event.target;
+	        if ((d.tagName.toUpperCase() === 'INPUT' && 
+	             (
+	                 d.type.toUpperCase() === 'TEXT' ||
+	                 d.type.toUpperCase() === 'PASSWORD' || 
+	                 d.type.toUpperCase() === 'FILE' || 
+	                 d.type.toUpperCase() === 'EMAIL' || 
+	                 d.type.toUpperCase() === 'SEARCH' || 
+	                 d.type.toUpperCase() === 'DATE' )
+	             ) || 
+	             d.tagName.toUpperCase() === 'TEXTAREA') {
+	            doPrevent = d.readOnly || d.disabled;
+	        } else {
+	            doPrevent = true;
+	        }
+			
+			if(doPrevent) {
+				e.preventDefault();
+				
+				if(inAction) return;
+				inAction = true; // Avoid multiple action at the same time
+				
+				// Always keep at least a stacked view
+				if(stack.length > 0) {
+					// Get the previous view, and re-display it
+					var view = stack.pop();
+					var viewElement = view.getView();
+					view.updateView();
+				
+					console.log('Resuming view ' + view.getId());
+							
+					renderer.fadeOut(200).promise().always(function() {
+						renderer.children().detach();
+						renderer.append(viewElement);
+						renderer.fadeIn(200).promise().always(function() {
+							inAction = false;
+						});
+					});
+				} else
+					inAction = false; // Cancel
+			}
+		}
+	});
+	
+	// Bind the actions
 	$.each(actions, function(action, handler) {
-		element.on(action, function() {
-			var newElement = handler.apply(element, arguments);
-			MN.actionHandler(actions, newElement);
+		actualView.on(action, function() {
+			
+			if(inAction) return;
+			inAction = true; // Avoid multiple action at the same time
+			
+			// TODO : fix navbar handling
+			// Save the actual view to the stack
+			if(actualView.isSavable())
+				stack.push(actualView);
+			
+			// Create a new view, and happend to the renderer
+			var view = handler.apply(actualView, arguments);
+			view.initView();
+			var viewElement = view.getView();
+			view.updateView();
+				
+			console.log('Creating view ' + view.getId());
+				
+			renderer.fadeOut(200).promise().always(function() {
+				renderer.children().detach();
+				renderer.append(viewElement);
+				renderer.fadeIn(200).promise().always(function() {
+					inAction = false;
+					MN.actionHandler(actions, view, renderer);
+				});
+			});
+			
 		});
 	});
 };
 
-/*
-	show : function(_show) {
-		var me = this;
-		
-		this.renderer.fadeOut(200, function() {
-			me.renderer.empty();
-			_show.apply(me);
-			me.renderer.fadeIn(200);
-		});
-	}
-*/
-
+// handle for a bad request response
 MN.handleRequestError = function(response) {
 	console.log(response);
 	if(response.responseJSON && response.responseJSON.data && response.responseJSON.data.message) {
@@ -309,22 +382,13 @@ MN.handleRequestError = function(response) {
 	}
 }
 
+// handle for a failed request
 MN.handleRequestFail = function(response) {
 	console.log(response);
 	MN.notify('L\'envoie de la requête a échoué', 'Impossible d\'envoyer la requête. Il n\'y a peu être plus de connexion internet.', 'error');
-}
+}	
 
-// Allow to use a config object to handle actions
-MN.actionHandler = function(actions, element) {
-	$.each(actions, function(action, handler) {
-		element.on(action, function() {
-			var newElement = handler.apply(element, arguments);
-			MN.actionHandler(actions, newElement);
-		});
-	});
-};
-		
-
+// Format the date in an human readable way
 MN.formatDate = function(time) {
 	if(time == '0000-00-00 00:00:00')
 		return '[Aucune date disponible]';
