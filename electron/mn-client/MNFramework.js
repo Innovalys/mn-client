@@ -378,7 +378,7 @@ MN.handleRequestError = function(response) {
 	if(response.responseJSON && response.responseJSON.data && response.responseJSON.data.message) {
 		MN.notify('Erreur lors du chargement des informations', 'La requête a échouée avec le code <b>' + response.status + '</b>. Le serveur a également indiqué <em>"' + response.responseJSON.data.message + '"</em>', 'error');
 	} else {
-		MN.notify('Erreur lors du chargement des informations', 'La requête a échouée avec le code ' + response.status + '.', 'error');
+		MN.notify('Erreur lors du chargement des informations', 'La requête a échouée avec le code ' + response.status + '. Aucun message d\'erreur n\'a pu être récupéré', 'error');
 	}
 }
 
