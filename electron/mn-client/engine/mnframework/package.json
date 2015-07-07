@@ -1,0 +1,14 @@
+{
+  "name": "mnframework",
+  "version": "1.0.0",
+  "description": "MangaNetwork Framework, used by the client application",
+  "main": "index.js",
+  "devDependencies": {
+    "moment": "latest"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Guillaume Villerez",
+  "license": "MIT"
+}

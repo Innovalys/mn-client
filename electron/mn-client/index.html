@@ -13,11 +13,18 @@
 
     <script type="text/javascript">
 		// Load external files
-	    window.$ = window.jQuery = require('./jquery-2.1.4.min.js');
-	    require('./MNFramework.js');
+	    window.$ = window.jQuery = require('./engine/jquery/jquery-2.1.4.min.js');
+	    window.MN = require('./engine/mnframework');
+		
+		console.log(MN);
+		
 		var remote = require('remote');
 		var __path = remote.getCurrentWindow().getPath();
+		
 		var endpoint = 'http://localhost/mn-server/';
+		
+		var test = require('test');
+		test.printMsg();
 
 		// DEBUG
 		$( document ).ready(function() {	
@@ -323,7 +330,7 @@
 						type: 'PUT',
 						url: endpoint + 'user/manga/' + me.manga.source_URL + '/' + me.manga.source_ID,
 						dataType : 'json',
-						headers : MN.authHeader(user.login, user.password),
+						headers : MN.authHeader(user.login, user.pass),
 						success: function(data) {
 							me.fireEvent('manga', null, me.manga);
 							MN.notify('Informations mises à jour', 'Le manga a été ajouté avec succès à la collection');
@@ -340,7 +347,7 @@
 						type: 'DELETE',
 						url: endpoint + 'user/manga/' + me.manga.id,
 						dataType : 'json',
-						headers : MN.authHeader(user.login, user.password),
+						headers : MN.authHeader(user.login, user.pass),
 						success: function(data) {
 							me.fireEvent('manga', null, me.manga);
 							MN.notify('Informations mises à jour', 'Le manga a été retiré de la collection avec succès');
@@ -366,7 +373,7 @@
 					dataType : 'json',
 				    contentType: 'application/json',
 				    data: JSON.stringify({ favoris : me.manga.user_info.favoris ? false : true }),
-					headers : MN.authHeader(user.login, user.password),
+					headers : MN.authHeader(user.login, user.pass),
 					success: function(data) {
 						me.fireEvent('manga', null, me.manga);
 						MN.notify('Informations mises à jour', 'Les informations ont correctement été synchronisées');
@@ -394,7 +401,7 @@
 					type: 'GET',
 					url: endpoint + 'manga/' + this.manga.source_URL + '/' + this.manga.source_ID,
 					dataType : 'json',
-					headers : MN.authHeader(user.login, user.password),
+					headers : MN.authHeader(user.login, user.pass),
 					success: function(data) {
 						me.manga = data.data;
 						me.needReload = false;
@@ -593,7 +600,7 @@
 					type: 'GET',
 					url: endpoint + 'user/manga/id/' + this.manga.id + '/' + this.chapter_nb,
 					dataType : 'json',
-					headers : MN.authHeader(user.login, user.password),
+					headers : MN.authHeader(user.login, user.pass),
 					success: function(data) {
 						me.chapter = data.data;
 						
@@ -605,7 +612,7 @@
 								dataType : 'json',
 							    contentType: 'application/json',
 							    data: JSON.stringify({ chapter : me.chapter_nb }),
-								headers : MN.authHeader(user.login, user.password),
+								headers : MN.authHeader(user.login, user.pass),
 								success: function(data) {
 									me.manga.user_info.chapter_cur++ ; // Update local data
 									MN.notify('Chapitre mis à jour', 'Le chapitre en cours de lecture a été synchronisé');
@@ -746,7 +753,7 @@
 						type: 'GET',
 						url: endpoint + 'manga/search/' + api + '/' + encodeURIComponent(keywords),
 						dataType : 'json',
-						headers : MN.authHeader(user.login, user.password),
+						headers : MN.authHeader(user.login, user.pass),
 						success: function(response) {
 							var end = new Date().getTime();
 							var time = end - start;
@@ -884,7 +891,7 @@
 					type: 'GET',
 					url: endpoint + 'user/mangas/' + user.id,
 					dataType : 'json',
-					headers : MN.authHeader(user.login, user.password),
+					headers : MN.authHeader(user.login, user.pass),
 					success: function(data) {
 						var values = data.data;
 						var mangaFavoris = [];
@@ -925,8 +932,96 @@
 			}
 		});
 		
+		
+		// -- Login window
+		// ---------------------------
+		// View displaying general informations
+		var LoginWindow = MN.BaseElement.extend({
+			init : function(values) {
+				this._super();
+				this.id = "login page";
+			},
+			_checkValues : function() {
+				var error = false;
+				
+				if(!this.username.val() || this.username.val() == '') {
+					this.username.css('border-color', 'darkred');
+					MN.notify("Aucun nom d'utilisateur", "Aucun nom d'utilisateur n'a été entré dans le formulaire", 'error');
+					error = true;
+				}
+				
+				if(!this.password.val() || this.password.val() == '') {
+					this.password.css('border-color', 'darkred');
+					MN.notify("Aucun mot de passe", "Aucun mot de passe n'a été entré dans le formulaire", 'error');
+					error = true;
+				}
+				
+				return !error;
+			},
+			_initValueBind : function() {
+				var me = this;
+				
+				this.connect.on('click', function(e) {
+					e.preventDefault();
+					
+					// Check the values
+					if(!me._checkValues())
+						return;
+
+	         		$.ajax({
+					     type: 'GET',
+					     url: endpoint + 'user' ,
+					     dataType : 'json',
+					     headers: MN.authHeader(me.username.val(), me.password.val()),
+					     success: function(response) {
+					     	me.fireEvent('connect', response.data);
+					     },
+					     error: function(response) {
+							 console.log(response)
+							if(response.responseJSON && response.responseJSON.data && response.responseJSON.data.code == 403)
+								MN.notify("Nom de compte et/ou mot de passe invalide", "Le nom de compte et le formulaire ne correspondent à aucun compte", 'error');
+							else
+								MN.handleRequestError(response);
+					     },
+					     fail: function(data) {
+							MN.handleRequestFail(response);
+					     }
+			    	});
+				});
+				
+				this.register.on('click', function(e) {
+					e.preventDefault();
+					MN.notify("Fonctionnalité en cours de développement", "L'inscription n'est pas encore disponible", 'warning');
+				});
+			},
+			initView : function() {
+				var title = $('<h2 class="auth-title">Manga Network</h2>');
+				
+				var usernameDeco = $('<span class="input-group-addon" id="basic-addon1"><span class="fa fa-user"></span></span>');
+				this.username = $('<input name="username" type="text" class="form-control" placeholder="Username">');
+				
+				var passwordDeco = $('<span class="input-group-addon" id="basic-addon1"><span class="fa fa-lock"></span></span>');
+				this.password = $('<input name="password" type="password" class="form-control" placeholder="Password">');
+				
+				this.connect = $('<button type="submit" class="btn bnt-block btn-lg btn-primary">Connexion</button>');
+				this.register = $('<button type="submit" class="btn btn-block btn-lg btn-default">Inscription</button>');
+
+				var form = $('<form class="auth"></form>');
+				
+				this._initValueBind();
+				
+				form.append($('<div class="input-group"></div>').append(usernameDeco).append(this.username));
+				form.append($('<div class="input-group"></div>').append(passwordDeco).append(this.password));
+				form.append(this.connect).append(this.register);
+				
+				this.renderer.append(title).append(form);
+			},
+			updateView : function() {}
+		});
+		
+		
 		// TODO : login
-		var user = { id : 1, login : "test", password : "test", dir : "1_test" };
+		//var user = { /*id : 1, login : "test", password : "test", dir : "1_test" */ };
 		
 		// Prepare page
 		var page = $('<div class="main-container"></div>');
@@ -951,10 +1046,10 @@
 			}
 		};
 		
-		var navBar = new NavBar($('body'), {});
-		navBar.show();
+		//var navBar = new NavBar($('body'), {});
+		//navBar.show();
 		
-		new MN.ActionHandler(actions, page).start(navBar);
+		//new MN.ActionHandler(actions, page).start(navBar);
 		
 		// When all the page is loaded, add our container and launch
 		$( document ).ready(function() {
@@ -962,8 +1057,29 @@
 			$('body').append(page);
 			console.log("Application launching done");
 			
+			login = new LoginWindow();
+			
+			login.on('connect', function(loadedUser) {
+				// Prepare user
+				// TODO clean up
+				window.user = loadedUser;
+				user.dir = user.id + '_' + user.login;
+				
+				// Create navigation bar
+				var navBar = new NavBar($('body'), {});
+				navBar.show();
+				
+				new MN.ActionHandler(actions, page).start(navBar);
+			
+				// Show homepage
+				navBar.fireEvent('homepage');
+			});
+			
+			login.initView();
+			page.append(login.getView());
+			
 			// Show homepage
-			navBar.fireEvent('homepage');
+			//navBar.fireEvent('homepage');
 		});
 		
     </script>

@@ -3,6 +3,11 @@ body{
 	background: url("../images/background.png");
 }
 
+@font-face {
+    font-family: Kazincbarcika;
+    src: url("../fonts/MfKazincbarcika.ttf");
+}
+
 * {
 	outline-color: #0083a9 !important;
 }
@@ -19,6 +24,13 @@ body{
 	margin-top: 80px;
 }
 
+.auth-title {
+	font-family: Kazincbarcika;
+	width: 100%;
+	text-align: center;
+	font-size: 7.5em;
+}
+
 .auth{
 	width:330px;
 	height: 250px;
@@ -27,45 +39,18 @@ body{
 	padding:15px;
 }
 
-.auth .input-group, .auth a, .auth input[type=submit]{
+.auth .input-group, .auth a, .auth .btn{
 	margin-top:20px;
+}
+
+.auth .btn{
+	width: 100%;
 }
 
 .panel .btn {
 	margin-right: 7px;
 }
 
-.auth .btn{
-	font-weight: bold;
-	font-size: 17px;
-	color: white !important;
-	width:100%;
-}
-
-.bt-connect{
-	background-color: #01A9DB !important;
-}
-.bt-connect:hover{
-	background: black !important;
-}
-.bt-signin{
-	background-color: #FFBF00 !important;
-}
-.bt-signin:hover{
-	background: black !important;
-}
-.bt-confirm{
-	background-color: #088A08 !important;
-}
-.bt-confirm:hover{
-	background: black !important;
-}
-.bt-back{
-	background-color: #BDBDBD !important;
-}
-.bt-back:hover{
-	background-color: black !important;
-}
 .title{
 	text-align:center;
 }
