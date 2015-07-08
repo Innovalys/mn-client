@@ -901,19 +901,29 @@ exports.LoginWindow = MN.BaseElement.extend({
 		this._super();
 		this.id = "login page";
 	},
+	_toggleForms : function(active) {
+		this.username.prop('disabled', active);
+		this.password.prop('disabled', active);
+		this.connect.prop('disabled', active);
+		this.register.prop('disabled', active);
+	},
 	_checkValues : function() {
 		var error = false;
 		
 		if(!this.username.val() || this.username.val() == '') {
-			this.username.css('border-color', 'darkred');
+			this.usernameGroup.addClass('has-error');
 			MN.notify("Aucun nom d'utilisateur", "Aucun nom d'utilisateur n'a été entré dans le formulaire", 'error');
 			error = true;
+		} else {
+			this.usernameGroup.removeClass('has-error');
 		}
 		
 		if(!this.password.val() || this.password.val() == '') {
-			this.password.css('border-color', 'darkred');
+			this.passwordGroup.addClass('has-error');
 			MN.notify("Aucun mot de passe", "Aucun mot de passe n'a été entré dans le formulaire", 'error');
 			error = true;
+		} else {
+			this.passwordGroup.removeClass('has-error');
 		}
 		
 		return !error;
@@ -927,6 +937,9 @@ exports.LoginWindow = MN.BaseElement.extend({
 			// Check the values
 			if(!me._checkValues())
 				return;
+				
+			me._toggleForms(true);
+			me.connect.html('Chargement...');
 
      		$.ajax({
 			     type: 'GET',
@@ -942,9 +955,13 @@ exports.LoginWindow = MN.BaseElement.extend({
 						MN.notify("Nom de compte et/ou mot de passe invalide", "Le nom de compte et le formulaire ne correspondent à aucun compte", 'error');
 					else
 						MN.handleRequestError(response);
+					me._toggleForms(false);
+					me.connect.html('Connexion');
 			     },
-			     fail: function(data) {
+			     fail: function(response) {
 					MN.handleRequestFail(response);
+					me._toggleForms(false);
+					me.connect.html('Connexion');
 			     }
 	    	});
 		});
@@ -957,10 +974,10 @@ exports.LoginWindow = MN.BaseElement.extend({
 	initView : function() {
 		var title = $('<h2 class="auth-title">Manga Network</h2>');
 		
-		var usernameDeco = $('<span class="input-group-addon" id="basic-addon1"><span class="fa fa-user"></span></span>');
+		this.usernameGroup = $('<div class="input-group"></div>').append($('<span class="input-group-addon" id="basic-addon1"><span class="fa fa-user"></span></span>'));
 		this.username = $('<input name="username" type="text" class="form-control" placeholder="Username">');
 		
-		var passwordDeco = $('<span class="input-group-addon" id="basic-addon1"><span class="fa fa-lock"></span></span>');
+		this.passwordGroup = $('<div class="input-group"></div>').append($('<span class="input-group-addon" id="basic-addon1"><span class="fa fa-lock"></span></span>'));
 		this.password = $('<input name="password" type="password" class="form-control" placeholder="Password">');
 		
 		this.connect = $('<button type="submit" class="btn bnt-block btn-lg btn-primary">Connexion</button>');
@@ -970,8 +987,8 @@ exports.LoginWindow = MN.BaseElement.extend({
 		
 		this._initValueBind();
 		
-		form.append($('<div class="input-group"></div>').append(usernameDeco).append(this.username));
-		form.append($('<div class="input-group"></div>').append(passwordDeco).append(this.password));
+		form.append(this.usernameGroup.append(this.username));
+		form.append(this.passwordGroup.append(this.password));
 		form.append(this.connect).append(this.register);
 		
 		this.renderer.append(title).append(form);

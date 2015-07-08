@@ -1,95 +1,96 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <title>Manga Network</title>
-	<meta charset="utf-8"/>
-	<link rel="icon" type="image/png" href="images/icon.png" />
-	<link rel="stylesheet" href="style/bootstrap.min.css" type="text/css"/>
-	<link rel="stylesheet" href="style/font-awesome.min.css" type="text/css"/>
-	<link rel="stylesheet" href="style/style.css" type="text/css"/>
-  </head>
-  <body>
-	<div id="toast_back"></div>
+	<head>
+		<title>Manga Network</title>
+		<meta charset="utf-8"/>
+		<link rel="icon" type="image/png" href="images/icon.png" />
+		<link rel="stylesheet" href="style/bootstrap.min.css" type="text/css"/>
+		<link rel="stylesheet" href="style/font-awesome.min.css" type="text/css"/>
+		<link rel="stylesheet" href="style/style.css" type="text/css"/>
+	</head>
+	<body>
+		<div id="toast_back"></div>
 
-    <script type="text/javascript">
-		// Load node remote
-		var remote = require('remote');
-		
-		// Load configuration file
-		var conf = remote.getCurrentWindow().getConf();
-		
-		// Load requirements
-	    window.$ = window.jQuery = require(conf.engine + 'jquery/jquery-2.1.4.min.js');
-	    window.MN = require(conf.engine + 'mnframework');
-		
-		// DEBUG
-		if(conf.dev) {
-			$( document ).ready(function() {	
-				$("body").on("keydown", function(e) {
-					// F12 : show dev tools
-					if(e.which == 123) {
-						remote.getCurrentWindow().toggleDevTools();
-					}
-					// F1 : show test pop-up
-					else if(e.which == 112) {
-						MN.notify('Test', 'Message de test');
-					}
+		<script type="text/javascript">
+			// Load node remote
+			var remote = require('remote');
+			
+			// Load configuration file
+			var conf = remote.getCurrentWindow().getConf();
+			
+			// Load requirements
+			window.$ = window.jQuery = require(conf.engine + 'jquery/jquery-2.1.4.min.js');
+			window.MN = require(conf.engine + 'mnframework');
+			
+			// DEBUG
+			if(conf.dev) {
+				$( document ).ready(function() {	
+					$("body").on("keydown", function(e) {
+						// F12 : show dev tools
+						if(e.which == 123) {
+							remote.getCurrentWindow().toggleDevTools();
+						}
+						// F1 : show test pop-up
+						else if(e.which == 112) {
+							MN.notify('Test', 'Message de test');
+						}
+					});
 				});
-			});
-		}
-		// DEBUG
-		
-		// Prepare page
-		var page = $('<div class="main-container"></div>');
-		
-		// Defines the actions
-		var actions = {
-			'search' : function(e) {
-				// Show search
-				return new MN.Search();
-			},
-			'homepage' : function(e) {
-				// Show home page
-				return new MN.HomePage();
-			},
-			'manga' : function(e, manga, needReload) {
-				// Show home page
-				return new MN.MangaInfo({ manga : manga, needReload : needReload});
-			},
-			'manga-read' : function(e, manga, chapter) {
-				// Show home page
-				return new MN.MangaChapter({ manga : manga, chapter : chapter });
 			}
-		};
-		
-		// When all the page is loaded, add our container and launch
-		$(document).ready(function() {
-			// Append page renderer
-			$('body').append(page);
-			console.log("Application launching done");
+			// DEBUG
 			
-			login = new MN.LoginWindow();
+			// Prepare page
+			var page = $('<div class="main-container"></div>');
 			
-			login.on('connect', function(loadedUser) {
-				// Prepare user
-				// TODO clean up
-				MN.user = loadedUser;
-				MN.user.dir = MN.user.id + '_' + MN.user.login;
+			// Defines the actions
+			var actions = {
+				'search' : function(e) {
+					// Show search
+					return new MN.Search();
+				},
+				'homepage' : function(e) {
+					// Show home page
+					return new MN.HomePage();
+				},
+				'manga' : function(e, manga, needReload) {
+					// Show home page
+					return new MN.MangaInfo({ manga : manga, needReload : needReload});
+				},
+				'manga-read' : function(e, manga, chapter) {
+					// Show home page
+					return new MN.MangaChapter({ manga : manga, chapter : chapter });
+				}
+			};
+			
+			// When all the page is loaded, add our container and launch
+			$(document).ready(function() {
+				// Append page renderer
+				$('body').append(page);
+				console.log("Application launching done");
 				
-				// Create navigation bar
-				var navBar = new MN.NavBar($('body'), {});
-				navBar.show();
+				login = new MN.LoginWindow();
 				
-				new MN.ActionHandler(actions, page).start(navBar);
-			
-				// Show homepage
-				navBar.fireEvent('homepage');
+				login.on('connect', function(loadedUser) {
+					// Prepare user
+					// TODO clean up
+					MN.user = loadedUser;
+					MN.user.dir = MN.user.id + '_' + MN.user.login;
+					
+					// Create navigation bar
+					var navBar = new MN.NavBar($('body'), {});
+					navBar.show();
+					
+					new MN.ActionHandler(actions, page).start(navBar);
+				
+					// Show homepage
+					navBar.fireEvent('homepage');
+				});
+				
+				login.initView();
+				page.append(login.getView());
 			});
 			
-			login.initView();
-			page.append(login.getView());
-		});
-		
-    </script>
-  </body>
+	    </script>
+	</body>
 </html>
+

@@ -28,33 +28,42 @@ var fileExtension = function( url ) {
     return url.split('.').pop().split(/\#|\?/)[0];
 }
 
-var download = function(url, filename, callback){
+var download = function(url, filename, callback) {
   
-  var req = (url.startsWith('https') ? https : http).request(url, function(res) {
+  var request = (url.startsWith('https') ? https : http).get(url, function(response) {
     
-    if(res.statusCode != 200) {
-      callback(false, req);
-      return;
-    } else {
-      // File to write to
+    if (response.statusCode === 200) {
       var file = fs.createWriteStream(filename);
       
-      res.on('data', function(d) {
-        file.write(d);
+      // File finished downloading
+      file.on('finish', function () {
+        file.close(function() {
+          var stats = fs.statSync(filename);
+          
+          if(stats["size"] > 0)
+            callback(true);
+           else {
+             fs.unlink(filename);
+             callback(false, 'empty');
+           }
+        });
       });
       
-      res.on('end', function(d) {
-        file.close();
-        callback(true, null);
+      // Error on file
+      file.on('error', function (err) {
+        fs.unlink(filename);
+        callback(false, err.message);
       });
+      
+      response.pipe(file);
+    } else {
+      callback(false, response.statusCode);
     }
     
-  });
-  req.end();
-  
-  req.on('error', function(e) {
-    console.error(e);
-    callback(false, e);
+    // Add timeout.
+    request.setTimeout(12000, function () {
+        request.abort();
+    });
   });
 };
 
