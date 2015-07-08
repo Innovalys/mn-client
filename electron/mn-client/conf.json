@@ -1,0 +1,8 @@
+{
+  "endpoint" : "http://localhost/mn-server/",
+  "engine" : "./engine/",
+  "cache" : "/data/cache/",
+  "download" : "/data/download/",
+  "image" : "/style/images/",
+  "dev" : true
+}

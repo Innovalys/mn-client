@@ -1,6 +1,6 @@
 
-// Components to export
-var components = ['framework', 'views'];
+// Components used in the framwork
+var components = ['utils', 'elements', 'extend'];
 
 for(var i = 0; i < components.length; i++) {
 	var imported = require('./' + components[i] + '.js');

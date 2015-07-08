@@ -8,6 +8,15 @@ var dialog = require('dialog');
 //var request = require('./request/request.js');
 var crypto = require('crypto'); // Used to read local files
 
+// Load the configuration file
+var conf = require('./conf.json');
+
+conf.path = __dirname;
+conf.image = conf.path + conf.image;
+conf.cache = conf.path + conf.cache;
+conf.download = conf.path + conf.download;
+
+
 // Report crashes to our server.
 require('crash-reporter').start();
 
@@ -66,6 +75,10 @@ app.on('ready', function() {
     return __dirname;
   };
   
+  mainWindow.getConf = function() {
+    return conf;
+  }
+  
   mainWindow.exportFiles = function(files) {
     
     dialog.showSaveDialog(mainWindow, { title : "Emplacement de la sauvegarde" }, function(filename) {
@@ -85,7 +98,7 @@ app.on('ready', function() {
         clbk(null, 'No URL provided');
 
       // Create the directory if it doesn't exist
-      dir = __dirname + '/' + dir;
+      dir = conf.cache + '/' + dir;
       
       if (!fs.existsSync(dir)){
         fs.mkdirSync(dir);
