@@ -59,6 +59,9 @@
 				'manga-read' : function(e, manga, chapter) {
 					// Show home page
 					return new MN.MangaChapter({ manga : manga, chapter : chapter });
+				},
+				'options' : function(e) {
+					return new MN.OptionsPage();
 				}
 			};
 			

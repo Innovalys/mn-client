@@ -1,5 +1,5 @@
 {
-  "endpoint" : "http://localhost/mn-server/",
+  "endpoint" : "http://server.vuzi.fr:200/mn-server/",
   "engine" : "./engine/",
   "cache" : "/data/cache/",
   "download" : "/data/download/",

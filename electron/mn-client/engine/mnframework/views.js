@@ -59,10 +59,16 @@ exports.NavBar = MN.BaseElement.extend({
 		this.container.append(logo);
 	},
 	_initUsername : function() {
+		var me = this;
+		
 		var navbar = $('<ul class="nav navbar-nav navbar-right"></ul>')
+		var options = $('<button type="submit" class="btn btn-default"><i class="fa fa-cogs"></i></button>');
 		var username = $('<a href="#" aria-expanded="false">' + MN.user.login + '</a>');
 		
-		navbar.append('<li><a>&nbsp;</a></li>').append($('<li></li>').append(username));
+		options.on('click', function(e) { me.fireEvent('options', e); });
+		username.on('click', function(e) { me.fireEvent('user', e); });
+		
+		navbar.append('<li><a>&nbsp;</a></li>').append($('<li></li>').append(options)).append($('<li></li>').append(username));
 		
 		this.container.append(navbar);
 	},
@@ -892,6 +898,38 @@ exports.HomePage = MN.BaseElement.extend({
 	}
 });
 
+// -- Options page
+// ---------------------------
+// View displaying the options of the sofware
+exports.OptionsPage = MN.BaseElement.extend({
+	init : function(values) {
+		this._super();
+		this.id = "options";
+	},
+	_initActions : function() {
+		var title = $('<h2>Options - Actions</h2>');
+		var elements = $('<div class="row options-actions"></div>');
+		
+		var emptyCache = $('<button class="btn btn-default btn-large">Vider le cache</button>');
+		var emptyDownloads = $('<button class="btn btn-default btn-large">Supprimer tous les mangas enregistrés</button>');
+		
+		this.container.append(title).append(elements.append(emptyCache).append(emptyDownloads));
+	},
+	_initConfiguration : function() {
+		
+	},
+	initView : function() {
+		this.container = $('<div class="container"></div>');
+		
+		this._initActions();
+		this._initConfiguration();
+		
+		this.renderer.append(this.container.append(this.title).append(this.secondLine));
+	},
+	updateView : function() {
+		
+	}
+});
 
 // -- Login window
 // ---------------------------

@@ -103,8 +103,12 @@ app.on('ready', function() {
     
     mainWindow.getFile = function(dir, url, clbk) {
       
-      if(!url || url == '')
+      console.log(url);
+      
+      if(!url || url == '') {
         clbk(null, 'No URL provided');
+        return;
+      }
 
       // Create the directory if it doesn't exist
       dir = conf.cache + '/' + dir;
