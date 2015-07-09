@@ -1,5 +1,5 @@
 
-MN = require('./framework.js'); // MN.Class.extend
+MN = require('./framework.js');
 
 // -- Nav bar
 // ---------------------------
@@ -164,6 +164,7 @@ exports.MangaInfo = MN.BaseElement.extend({
 		
 		var removeButton = $('<button type="button" class="btn btn-danger btn-xs left-space" style="margin-left: 23px;">Retirer de la collection</button>');
 		var favorisButton = $('<button type="button" class="btn btn-warning btn-xs">' + (this.manga.user_info.favoris ? 'Retirer des favoris' : 'Ajouter aux favoris') + '</button>');
+		var downloadButton = $('<button type="button" class="btn btn-info btn-xs">Télécharger le manga</button>');
 		
 		removeButton.on('click', function(e) {
 			me._collectionToggle();
@@ -173,8 +174,12 @@ exports.MangaInfo = MN.BaseElement.extend({
 			me._favorisToggle();
 		});
 		
+		downloadButton.on('click', function(e) {
+			me._download();
+		});
+		
 		content.append(info);
-		content.append(removeButton).append(favorisButton);
+		content.append(removeButton).append(favorisButton).append(downloadButton);
 		
 		this.infoContainer.append(panel.append(header).append(content));
 	},
@@ -254,7 +259,7 @@ exports.MangaInfo = MN.BaseElement.extend({
 		var me = this;
 		
 		var container = $('<div class="container col-md-4" ></div>');
-		var panel = $('<img class="img-responsive" class="container" style="width: 100%; margin-top: 22px" src="' + conf.image + 'cover.jpg" title="' + this.manga.title + '" alt="' + this.manga.title + '" />');
+		var panel = $('<img class="img-responsive img-manga-cover" class="container" style="width: 100%; margin-top: 22px" src="' + conf.image + 'cover.jpg" title="' + this.manga.title + '" alt="' + this.manga.title + '" />');
 		var button = $('<button type="button" class="btn btn-primary btn-lg btn-block" style="margin-top: 22px;">' + (this.manga.user_info && this.manga.user_info.chapter_cur ? 'Reprendre la lecture' : 'Commencer la lecture') + '</button>');
 						
 		// Load the real image
@@ -326,6 +331,108 @@ exports.MangaInfo = MN.BaseElement.extend({
 				}
 			});
 		}
+	},
+	_download : function() {
+		var me = this;
+
+		var info = $("<span>Le téléchargement d'un manga permet de récupérer son contenu pour une lecture en mode <b>hors connexion</b>.<br/><br/>"+
+					 "Cependant, le téléchargement complet d'un manga relativement long peu prendre un certain temps, "+
+					 "en plus de l'espace disque requis par les différentrs images qui le compose.</span>");
+
+		var modal = new MN.window("Téléchargement manga", info, [
+				{ label : 'Annuler', action : function() { modal.dissmiss(); } },
+				{ label : 'Lancer le téléchargement', type : 'primary', action : function() {
+					modal.toggleDismissable();
+					modal.toggleButtons();
+					
+					// Update view
+					var progressBar = new MN.components.ProgressBar(me.manga.chapter_nb);
+					var chapterInfo = $('<span>Téléchargement du chapite 1/' + me.manga.chapter_nb + ' ...</span>');
+					
+					info.empty().append(progressBar.getComponent()).append(chapterInfo);
+					
+					// Manga directory
+					me.mangaDir = MN.user.dir + '/' + me.manga.id + '/';
+					
+					// Write the data
+					remote.getCurrentWindow().writeFile(me.mangaDir, 'info.json', me.manga, function() {
+						if(me.manga.chapters) {
+							me._downloadChapter(1, me.manga.chapters, function(chapter, index) {
+								// Update value
+								progressBar.setValue(index);
+								chapterInfo.html("Téléchargement du chapite " + index + '/' + me.manga.chapter_nb + ' ...');
+							}, function() {
+								// Finished
+								chapterInfo.html('Téléchargement terminé !');
+								modal.toggleDismissable();
+								modal.setOptions({ label : 'Quitter', action : function() { modal.dissmiss(); } });
+							});
+						}
+					});
+				} }
+			]);
+		modal.show();
+	},
+	_downloadChapter : function(index, chapters, update, done) {
+		var me = this;
+		
+		var chapter = chapters.shift();
+		var chapterDir = this.mangaDir + index;
+		
+		var nextChapter = function(chapterInfo) {
+			update(chapterInfo, index);
+			
+			// Next chapter
+			if(chapters.length > 0)
+				me._downloadChapter(index + 1, chapters, update, done);
+			else
+				done();
+		};
+		
+		// Perform the request
+		$.ajax({
+			type: 'GET',
+			url: conf.endpoint + 'user/manga/id/' + this.manga.id + '/' + index,
+			dataType : 'json',
+			headers : MN.authHeader(MN.user.login, MN.user.pass),
+			success: function(data) {
+				var chapter = data.data;
+				
+				// Write the chapter info
+				remote.getCurrentWindow().writeFile(chapterDir, 'info.json', chapter, function() {
+					
+					if(!chapter.pages || chapter.pages.length == 0)
+						nextChapter(chapter);
+					
+					// Get images to download
+					var filenames = [];
+					var urls = [];
+					
+					for(var i = 0; i < chapter.pages.length; i++) {
+						var page = chapter.pages[i];
+						var imageName = page.page_nb + '.' + page.link.split('.').pop().split(/\#|\?/)[0];
+						
+						filenames.push(imageName);
+						urls.push(page.link);
+					}
+					
+					// Download the images
+					remote.getCurrentWindow().downloadFiles(chapterDir, filenames, urls, function() {
+						// Download finished
+						nextChapter();
+					});
+				});
+			},
+			error: function(response) {
+				MN.handleRequestError(response);
+				nextChapter(null);
+			},
+			fail: function(response) {
+				MN.handleRequestFail(response);
+				nextChapter(null);
+			}
+		});
+
 	},
 	_favorisToggle : function() {
 		if(!this.manga.user_info)
@@ -413,7 +520,7 @@ exports.MangaChapter = MN.BaseElement.extend({
 		var me = this;
 		this.mangaPages = $('<div class="container row" ></div>');
 		this.controls = $('<div class="container panel-body manga-controls" ></div>');
-		
+			
 		// Controls & images
 		this._initControls();
 		this._initMangaPages();
@@ -501,6 +608,8 @@ exports.MangaChapter = MN.BaseElement.extend({
 		this.images = [];  // All the images
 		this.image = null; // Current image
 		
+		var scrolling = false; // If any code controller scrolling is happening in the view
+		
 		var loadedPages = 0;
 		var loader = $('<div class="container manga-image alert alert-info" style="width:550px;">Chargement des images en cours...</div>');
 		
@@ -525,14 +634,49 @@ exports.MangaChapter = MN.BaseElement.extend({
 			});
 			
 			image.on('appear', function(e) {
-				if(me.image)
-					me.image.removeClass('selected');
-					
-				me.image = image;
-				me.image.addClass('selected');
+				if(!scrolling) {
+					if(me.image)
+						me.image.removeClass('selected');
+						
+					me.image = image;
+					me.image.addClass('selected');
+				}
 			});
 			
 			me.images.push(image);
+		});
+		
+		$(document).keydown(function(e) {
+			if(scrolling)
+				return;
+			
+		    switch(e.which) {
+		        case 37: // left
+				var index = me.images.indexOf(me.image);
+				if(index > 0) {
+					me.images[index - 1].trigger('appear');
+					scrolling = true; // lock scrolling
+					$('html,body').animate({ scrollTop: (me.image ? me.image.offset().top - 80 : 0) }, 400).promise().always(function() {
+						scrolling = false;
+					});
+				}
+		   		e.preventDefault();
+		        break;
+		
+		        case 39: // right
+				var index = me.images.indexOf(me.image);
+				if(index < me.images.length + 1) {
+					me.images[index + 1].trigger('appear');
+					scrolling = true; // lock scrolling
+					$('html,body').animate({ scrollTop: (me.image ? me.image.offset().top - 80 : 0) }, 400).promise().always(function() {
+						scrolling = false;
+					});
+				}
+		    	e.preventDefault();
+		        break;
+		
+		        default: return;
+		    }
 		});
 		
 		$(document).on('scroll', function(){
@@ -835,7 +979,7 @@ exports.HomePage = MN.BaseElement.extend({
 		
 		values.forEach(function(manga) {
 			
-			var panel = $('<img class="img-responsive" src="' + conf.image + 'cover.jpg" title="' + manga.title + '" alt="' + manga.title + '" />');
+			var panel = $('<img class="img-responsive img-manga-cover" src="' + conf.image + 'cover.jpg" title="' + manga.title + '" alt="' + manga.title + '" />');
 			renderer.append(panel);
 			
 			panel.on('click', function(e) {

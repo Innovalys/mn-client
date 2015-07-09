@@ -9,8 +9,13 @@
 		<link rel="stylesheet" href="style/style.css" type="text/css"/>
 	</head>
 	<body>
-		<div id="toast_back"></div>
+		<div id="toast_back" class="modal-back"></div>
+		<div id="window_back" class="modal-back">
 
+		</div>
+		
+
+	  
 		<script type="text/javascript">
 			// Load node remote
 			var remote = require('remote');
@@ -33,6 +38,13 @@
 						// F1 : show test pop-up
 						else if(e.which == 112) {
 							MN.notify('Test', 'Message de test');
+						}
+						// F2 : show test window
+						else if(e.which == 113) {
+							modal = new MN.window("Titre d'exemple", "<b>Test des</b> modales !", [ { label : 'test', action : function() {
+								alert("Hello world !");
+							} } ])
+							modal.show();
 						}
 					});
 				});

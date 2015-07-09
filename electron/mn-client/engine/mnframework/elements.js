@@ -103,6 +103,93 @@ MN.notify = function(title, message, type, timer) {
 }
 
 /**
+ * Window (modal)
+ */
+ MN.window = MN.CallbackHandler.extend({
+	init : function(title, content, options, dismissible) {
+		this._super();
+		this.title = title;
+		this.content = content;
+		this.options = options;
+		this.dismissible = dismissible || true;
+		
+		this.modal = $('<div class="modal-dialog"></div>');
+		this.container = $('<div class="modal-content"></div>');
+		this.modal.append(this.container);
+		
+		this._initHeader();
+		this._initBody();
+		this._initFooter();
+		
+		this.setOptions(options);
+		
+		if(!this.dismissible)
+			this.closeButton.prop('disabled', true);
+	},
+	_initHeader : function() {
+		var me = this;
+		
+		var header = $('<div class="modal-header"></div>');
+		this.closeButton = $('<button type="button" class="close"><span>×</span></button>');
+		this.closeButton.on('click', function() { me.dissmiss(); });
+		
+		header.append(this.closeButton).append($('<h4 class="modal-title">' + this.title + '</h4>'));
+		this.container.append(header);
+	},
+	_initBody : function() {
+		var body = $('<div class="modal-body">');
+		
+		body.append($('<p></p>').append(this.content));
+		this.container.append(body);
+	},
+	_initFooter : function() {
+		var me = this;
+		
+		this.buttons = [];
+		this.footer = $('<div class="modal-footer">');
+		this.container.append(this.footer);
+	},
+	setOptions : function(options) {
+		var me = this;
+		
+		if(!$.isArray(options))
+			options = [options];
+		
+		this.buttons = [];
+		me.footer.empty();
+		
+		$.each(options, function(index, option) {
+			var buttonType = option.type ? option.type : 'default';
+			var button = $('<button type="button" class="btn btn-' + buttonType + '">' + option.label + '</button>');
+			
+			button.on('click', function(e) {
+				option.action(e, me);
+			});
+			
+			me.footer.append(button);
+			me.buttons.push(button);
+		});
+	},
+	show : function() {
+		console.log('show');
+		$('#window_back').fadeIn();
+		$('#window_back').append(this.modal);
+	},
+	dissmiss : function() {
+		$('#window_back').fadeOut();
+		this.modal.remove();
+	},
+	toggleDismissable : function() {
+		this.closeButton.prop('disabled', (this.dismissable = !this.dismissable))
+	},
+	toggleButtons : function() {
+		this.buttons.forEach(function(button) {
+			button.prop('disabled', !button.prop('disabled'));
+		});
+	}
+ });
+
+/**
  * Toast
  */
 MN.Toast = MN.CallbackHandler.extend({
@@ -151,8 +238,34 @@ MN.Toast = MN.CallbackHandler.extend({
 	}
 });
 
+MN.components = {};
+
+MN.components.ProgressBar = MN.CallbackHandler.extend({
+	init : function(max) {
+		this._super();
+		
+		this.max = max;
+		
+		this.component = $('<div class="progress manga-progress" style="margin-top : 0px;"></div>');
+		this.progressBar = $('<div class="progress-bar" role="progressbar" style="min-width: 2em; width: 0%;">0.0%</div>');
+		
+		this.component.append(this.progressBar);
+	},
+	getComponent : function() {
+		return this.component;
+	},
+	setValue : function(value) {
+		value = ((0 + value) / (0 + this.max) * 100).toFixed(1);
+		
+		this.progressBar.css('width', value + '%');
+		this.progressBar.html(value + '%');
+		
+		this.fireEvent('update', null, value);
+	}
+});
+
 /**
- * Base class for every element
+ * Base class for every view element
  */
 MN.BaseElement = MN.CallbackHandler.extend({
 	init : function() {

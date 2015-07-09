@@ -239,7 +239,7 @@ body{
 	color: darkred;
 }
 
-#toast_back {
+.modal-back {
 	position: fixed;
 	z-index: 999;
 	top: 0;
@@ -251,6 +251,17 @@ body{
 	background: none !important;
 
 	opacity:1;
+}
+
+.modal-back .modal-dialog {
+	margin-top: 10%;
+}
+
+#window_back {
+	pointer-events: all;
+	background-color: rgba(0, 0, 0, 0.4) !important;
+	display: none;
+	z-index: 999999;
 }
 
 /* Animations */
@@ -560,4 +571,13 @@ body{
 .options-actions .btn {
 	margin-bottom: 8px;
 	display: block;
+}
+
+.img-manga-cover {
+	box-shadow: 0px 0px 5px gray;
+}
+
+.img-manga-cover:hover {
+	box-shadow: 0px 0px 5px lightblue;
+	cursor: pointer;
 }

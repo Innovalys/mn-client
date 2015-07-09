@@ -3,6 +3,7 @@ var BrowserWindow = require('browser-window');  // Module to create native brows
 var fs = require('fs'); // Used to read local files
 var http   = require('http');
 var https   = require('https');
+var mkpath = require('mkpath');
 var dialog = require('dialog');
 
 //var request = require('./request/request.js');
@@ -29,7 +30,6 @@ var fileExtension = function( url ) {
 }
 
 var download = function(url, filename, callback) {
-  
   var request = (url.startsWith('https') ? https : http).get(url, function(response) {
     
     if (response.statusCode === 200) {
@@ -79,6 +79,51 @@ app.on('ready', function() {
   // Create the browser window.
   mainWindow = new BrowserWindow({ 'min-width' : 960, 'min-height' : 640, width : 1200, height : 800});
 
+  // Function to read a file
+  mainWindow.readFile = function(path, filename, success, error) {
+    var dir = conf.download + '/' + path;
+
+    fs.readFile(dir, {encoding: 'utf-8'}, function(err, data){
+      if (err){
+        if(error) error(err);
+        else console.log(err);
+        return;
+      }
+      
+      try {
+        success(JSON.parse(data));
+        console.log("File loaded : " + filename);
+      } catch (err) {
+        if(error) error(err);
+        else console.log(err);
+      }
+    });
+  }
+
+  // Function to write a provided content (JSON object) to a file
+  mainWindow.writeFile = function(path, filename, content, success, error) {
+    // Create the directory if it doesn't exist
+    var dir = conf.download + '/' + path;
+    
+    // Create the file
+    if (!fs.existsSync(dir)) {
+      mkpath.sync(dir, 0x0700);
+    }
+    
+    // Write 
+    fs.writeFile(dir + '/' + filename, JSON.stringify(content), function(err) {
+      if(err) {
+        if(error) error(err);
+        else console.log(err);
+        return;
+      }
+      
+      success();
+      console.log("File saved : " + filename);
+    }); 
+    
+  }
+
   // Return the application path
   mainWindow.getPath = function () {
     return __dirname;
@@ -88,6 +133,7 @@ app.on('ready', function() {
     return conf;
   }
   
+  // TODO
   mainWindow.exportFiles = function(files) {
     
     dialog.showSaveDialog(mainWindow, { title : "Emplacement de la sauvegarde" }, function(filename) {
@@ -100,39 +146,83 @@ app.on('ready', function() {
 
   // and load the index.html of the app.
   mainWindow.loadUrl('file://' + __dirname + '/index.html');
+  
+  // Download a list of files
+  mainWindow.downloadFiles = function(dir, filenames, urls, done, oneDone) {
     
-    mainWindow.getFile = function(dir, url, clbk) {
+    var filesToDownload = urls.length > filenames.length ? filenames.length : urls.length;
+    var results = [];
+    
+    if(filesToDownload <= 0)
+      done(results);
+    
+    while(filenames.length > 0 && urls.length > 0) {
+      var filename = filenames.shift();
       
-      console.log(url);
-      
-      if(!url || url == '') {
-        clbk(null, 'No URL provided');
-        return;
-      }
-
-      // Create the directory if it doesn't exist
-      dir = conf.cache + '/' + dir;
-      
-      if (!fs.existsSync(dir)){
-        fs.mkdirSync(dir);
-      }
-
-      // Filename is an hash of the URL + the previous file extension
-      var filename = dir + '/' + crypto.createHash('md5').update(url).digest('hex') + '.' + fileExtension(url);
-        
-      fs.readFile(filename, 'utf8', function (err, data) {
-        if (!err) {
-          // Open localy the file
-          console.log("File localy loaded : " + url);
-          clbk(filename, null);
-        } else {
-          // Download & save the file
-          download(url, filename, function(ok, error) {
-            console.log("File downloaded : " + url);
-            clbk(ok ? filename : null, error);
-          });
-        }
+      mainWindow.downloadFile(dir, filename, urls.shift(), function(newFilename, error) {
+        if(oneDone)
+          oneDone(newFilename, error);
+          
+        results[filename] = { filename : newFilename, error : error };
+          
+        if(--filesToDownload <= 0)
+          done(results);
       });
+    }
+    
+  }
+    
+  // Download a file
+  mainWindow.downloadFile = function(dir, filename, url, done) {
+    if(!url || url == '') {
+      done(null, 'No URL provided');
+      return;
+    }
+    
+    // Create the directory if it doesn't exist
+    dir = conf.download + '/' + dir;
+    
+    if (!fs.existsSync(dir)){
+      mkpath.sync(dir, 0x0700);
+    }
+    
+    // Download & save the file
+    download(url, dir + '/' + filename, function(ok, error) {
+      console.log("File downloaded : " + url);
+      done(ok ? filename : null, error);
+    });
+  }
+    
+  mainWindow.getFile = function(dir, url, clbk) {
+    
+    if(!url || url == '') {
+      clbk(null, 'No URL provided');
+      return;
+    }
+
+    // Create the directory if it doesn't exist
+    dir = conf.cache + '/' + dir;
+    
+    if (!fs.existsSync(dir)){
+      mkpath.sync(dir, 0x0700);
+    }
+
+    // Filename is an hash of the URL + the previous file extension
+    var filename = dir + '/' + crypto.createHash('md5').update(url).digest('hex') + '.' + fileExtension(url);
+      
+    fs.readFile(filename, 'utf8', function (err, data) {
+      if (!err) {
+        // Open localy the file
+        console.log("File localy loaded : " + url);
+        clbk(filename, null);
+      } else {
+        // Download & save the file
+        download(url, filename, function(ok, error) {
+          console.log("File downloaded : " + url);
+          clbk(ok ? filename : null, error);
+        });
+      }
+    });
   };
   
   // Show google dev tools
