@@ -27,6 +27,8 @@
 			window.$ = window.jQuery = require(conf.engine + 'jquery/jquery-2.1.4.min.js');
 			window.MN = require(conf.engine + 'mnframework');
 			
+			require(conf.engine + 'bootstrap/tooltip.js');
+			
 			// DEBUG
 			if(conf.dev) {
 				$( document ).ready(function() {	

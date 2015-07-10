@@ -665,7 +665,7 @@ exports.MangaChapter = MN.BaseElement.extend({
 		
 		        case 39: // right
 				var index = me.images.indexOf(me.image);
-				if(index < me.images.length + 1) {
+				if(index + 1 < me.images.length) {
 					me.images[index + 1].trigger('appear');
 					scrolling = true; // lock scrolling
 					$('html,body').animate({ scrollTop: (me.image ? me.image.offset().top - 80 : 0) }, 400).promise().always(function() {
@@ -899,7 +899,8 @@ exports.Search = MN.BaseElement.extend({
 		results.forEach(function(result) {
 			var row = $('<tr></tr>');
 			
-			var image = $('<img class="img-responsive" src="' + conf.image + 'cover.jpg"  style="height: 100px;" title="' + result.title + '" alt="' + result.title + '" />');
+			var image = $('<img class="img-responsive" src="' + conf.image + 'cover.jpg"  style="height: 100px;" data-toggle="tooltip" title="' + result.title + '" alt="' + result.title + '" />');
+			image.tooltip(); // Add the tooltip
 			row.append($('<td></td>').append(image));
 			
 			image.on('click', function(e) {
@@ -979,7 +980,8 @@ exports.HomePage = MN.BaseElement.extend({
 		
 		values.forEach(function(manga) {
 			
-			var panel = $('<img class="img-responsive img-manga-cover" src="' + conf.image + 'cover.jpg" title="' + manga.title + '" alt="' + manga.title + '" />');
+			var panel = $('<img class="img-responsive img-manga-cover" src="' + conf.image + 'cover.jpg" data-toggle="tooltip" title="' + manga.title + '" alt="' + manga.title + '" />');
+			panel.tooltip(); // Add the tooltip
 			renderer.append(panel);
 			
 			panel.on('click', function(e) {
