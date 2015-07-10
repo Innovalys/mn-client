@@ -6,9 +6,10 @@ module.exports = MN; // Export all
 
 // Actions used by the application to change view
 MN._defaultActions = {
-	'search' : function(e) {
+	'search' : function(e, info) {
+		console.log(info);
 		// Show search
-		return new MN.Search();
+		return new MN.Search(info);
 	},
 	'homepage' : function(e) {
 		// Show home page

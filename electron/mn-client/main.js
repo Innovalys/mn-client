@@ -79,8 +79,10 @@ app.on('ready', function() {
   // Create the browser window.
   mainWindow = new BrowserWindow({ 'min-width' : 960, 'min-height' : 640, width : 1200, height : 800});
 
+  // To use in the webview
   mainWindow.crypto = crypto;
 
+  // Return the list of file/directory contained in a directory
   mainWindow.getDirContent = function(path, success, error) {
     var dir = conf.download + '/' + path;
     
@@ -93,7 +95,8 @@ app.on('ready', function() {
       success(files);
     });
   }
-    // Function to read a file
+  
+  // Function to read a file
   mainWindow.readFileSync = function(path, filename, success, error) {
     var dir = conf.download + '/' + path + '/' + filename;
 
@@ -241,6 +244,8 @@ app.on('ready', function() {
     
   mainWindow.getFile = function(dir, url, clbk) {
     
+    console.log(url);
+    
     if(!url || url == '') {
       clbk(null, 'No URL provided');
       return;
@@ -263,10 +268,14 @@ app.on('ready', function() {
         clbk(filename, null);
       } else {
         // Download & save the file
-        download(url, filename, function(ok, error) {
-          console.log("File downloaded : " + url);
-          clbk(ok ? filename : null, error);
-        });
+        try {
+          download(url, filename, function(ok, error) {
+            console.log("File downloaded : " + url);
+            clbk(ok ? filename : null, error);
+          });
+        } catch (error) {
+          clbk(null, error);
+        }
       }
     });
   };

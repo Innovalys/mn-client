@@ -22,12 +22,12 @@ MN.NavBar = MN.BaseElement.extend({
 		input.keypress(function(e) {
 			if ( e.which == 13 ) {
 				e.preventDefault();
-				me.fireEvent('search', e, input.val());
+				me.fireEvent('search', e, { manga : input.val() });
 			}
 		});
 		button.on('click', function(e) {
 			e.preventDefault();
-			me.fireEvent('search', e, input.val());
+			me.fireEvent('search', e, { manga : input.val() });
 		});
 		
 		search_bar.append($('<div class="form-group"></div>').append(input)).append(button);
@@ -781,6 +781,10 @@ MN.Search = MN.BaseElement.extend({
 	init : function(values) {
 		this._super();
 		this.id = 'advanced search';
+		
+		if(values) {
+			this.toSearch = values.manga; // only handle manga for now
+		}
 	},
 	_initMangaSearchFields : function() {
 		var me = this;
@@ -831,6 +835,9 @@ MN.Search = MN.BaseElement.extend({
 			}
 		});
 		
+		if(this.toSearch)
+			keywordsInput.val(this.toSearch);
+			
 		// Search value
 		var searchField = $('<button type="submit" class="btn btn-default"><i class="fa fa-search"></i></button>');
 		
@@ -972,6 +979,9 @@ MN.Search = MN.BaseElement.extend({
 		this._initResultsFields();
 		
 		this.renderer.append(this.container);
+		
+		if(this.toSearch)
+			this._search('all', this.toSearch); // Search on all APIs
 	}
 });
 
