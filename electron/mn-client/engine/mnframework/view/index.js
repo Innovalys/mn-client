@@ -1305,7 +1305,7 @@ MN.LoginWindow = MN.BaseElement.extend({
 		
 		form.append(this.usernameGroup.append(this.username));
 		form.append(this.passwordGroup.append(this.password));
-		form.append($('<label class="checkbox connected-chk">Mode hors line</label>').prepend(this.online)).append(this.connect).append(this.register);
+		form.append($('<label class="checkbox connected-chk">Mode hors ligne</label>').prepend(this.online)).append(this.connect).append(this.register);
 		
 		this.renderer.append(title).append(form);
 	},
