@@ -1,12 +1,17 @@
-var MN = exports;                        // Add export value
-MN.Class = require('./extend.js').Class; // MN.Class.extend
+var MN = exports;                             // Add export value
+MN.Class = require('./extend.js').Class;      // MN.Class.extend
+
+$ = require('../../jquery/jquery-2.1.4.min.js'); // jQuery plugin (global to tooltip.js)
+jQuery = $;
+			
+require('../../bootstrap/tooltip.js');           // Tooltip for jQuery
 
 /**
  * Callback handler. Any class extending the class will be able
  * to register as event handler methods on a specific event type, and
  * to fire events.
  * 
- * @param  {self}  on       : Bin a handler on a specific event type
+ * @param  {self}  on       : Bind a handler on a specific event type
  * @param  {self} remove    : Remove the given handler for the specified type
  * @param  {self} clear     : Remove all handlers for the specified type
  * @param  {self} fireEvent : Fire an event for the specified type with the provided arguments
@@ -372,16 +377,7 @@ MN.ActionHandler = MN.Class.extend({
 		    } else if(e.keyCode == 8) {
 	    		var doPrevent = false;
 		        var d = event.srcElement || event.target;
-		        if ((d.tagName.toUpperCase() === 'INPUT' && 
-		             (
-		                 d.type.toUpperCase() === 'TEXT' ||
-		                 d.type.toUpperCase() === 'PASSWORD' || 
-		                 d.type.toUpperCase() === 'FILE' || 
-		                 d.type.toUpperCase() === 'EMAIL' || 
-		                 d.type.toUpperCase() === 'SEARCH' || 
-		                 d.type.toUpperCase() === 'DATE' )
-		             ) || 
-		             d.tagName.toUpperCase() === 'TEXTAREA') {
+		        if (d.tagName.toUpperCase() === 'INPUT' || d.tagName.toUpperCase() === 'TEXTAREA') {
 		            doPrevent = d.readOnly || d.disabled;
 		        } else {
 		            doPrevent = true;
@@ -422,8 +418,12 @@ MN.ActionHandler = MN.Class.extend({
 				me.inAction = true; // Avoid multiple action at the same time
 				
 				// Save the actual view to the stack
-				if(me.actualView.isSavable())
+				if(me.actualView.isSavable()) {
+					if(me.stack.length > 10)
+						me.stack.shift(); // Save 10 elements maximum
+					
 					me.stack.push(me.actualView);
+				}
 				
 				// Create a new view, and happend to the renderer
 				try {

@@ -10,12 +10,9 @@
 	</head>
 	<body>
 		<div id="toast_back" class="modal-back"></div>
-		<div id="window_back" class="modal-back">
-
-		</div>
+		<div id="window_back" class="modal-back"></div>
+		<div class="main-container"></div>
 		
-
-	  
 		<script type="text/javascript">
 			// Load node remote
 			var remote = require('remote');
@@ -24,14 +21,13 @@
 			var conf = remote.getCurrentWindow().getConf();
 			
 			// Load requirements
-			window.$ = window.jQuery = require(conf.engine + 'jquery/jquery-2.1.4.min.js');
-			window.MN = require(conf.engine + 'mnframework');
+			var MN = require(conf.engine + 'mnframework');
 			
-			require(conf.engine + 'bootstrap/tooltip.js');
+			console.log(MN);
 			
 			// DEBUG
 			if(conf.dev) {
-				$( document ).ready(function() {	
+				$(document).ready(function() {	
 					$("body").on("keydown", function(e) {
 						// F12 : show dev tools
 						if(e.which == 123) {
@@ -53,59 +49,8 @@
 			}
 			// DEBUG
 			
-			// Prepare page
-			var page = $('<div class="main-container"></div>');
-			
-			// Defines the actions
-			var actions = {
-				'search' : function(e) {
-					// Show search
-					return new MN.Search();
-				},
-				'homepage' : function(e) {
-					// Show home page
-					return new MN.HomePage();
-				},
-				'manga' : function(e, manga, needReload) {
-					// Show home page
-					return new MN.MangaInfo({ manga : manga, needReload : needReload});
-				},
-				'manga-read' : function(e, manga, chapter) {
-					// Show home page
-					return new MN.MangaChapter({ manga : manga, chapter : chapter });
-				},
-				'options' : function(e) {
-					return new MN.OptionsPage();
-				}
-			};
-			
-			// When all the page is loaded, add our container and launch
-			$(document).ready(function() {
-				// Append page renderer
-				$('body').append(page);
-				console.log("Application launching done");
-				
-				login = new MN.LoginWindow();
-				
-				login.on('connect', function(loadedUser) {
-					// Prepare user
-					// TODO clean up
-					MN.user = loadedUser;
-					MN.user.dir = MN.user.id + '_' + MN.user.login;
-					
-					// Create navigation bar
-					var navBar = new MN.NavBar($('body'), {});
-					navBar.show();
-					
-					new MN.ActionHandler(actions, page).start(navBar);
-				
-					// Show homepage
-					navBar.fireEvent('homepage');
-				});
-				
-				login.initView();
-				page.append(login.getView());
-			});
+			// Launch
+			MN.launch($('.main-container'), conf);
 			
 	    </script>
 	</body>

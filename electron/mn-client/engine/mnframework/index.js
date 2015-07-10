@@ -1,10 +1,56 @@
+var MN = require('./view');                        // Load the view (and the framework with it)
+var $ = require('../jquery/jquery-2.1.4.min.js');  // JQuery plugin
+var jQuery = $;
 
-// Components to export
-var components = ['framework', 'views'];
+module.exports = MN; // Export all
 
-for(var i = 0; i < components.length; i++) {
-	var imported = require('./' + components[i] + '.js');
-	for (var attrname in imported) {
-		exports[attrname] = imported[attrname];
+// Actions used by the application to change view
+MN._default_actions = {
+	'search' : function(e) {
+		// Show search
+		return new MN.Search();
+	},
+	'homepage' : function(e) {
+		// Show home page
+		return new MN.HomePage();
+	},
+	'manga' : function(e, manga, needReload) {
+		// Show home page
+		return new MN.MangaInfo({ manga : manga, needReload : needReload});
+	},
+	'manga-read' : function(e, manga, chapter) {
+		// Show home page
+		return new MN.MangaChapter({ manga : manga, chapter : chapter });
+	},
+	'options' : function(e) {
+		return new MN.OptionsPage();
 	}
-}
+};
+
+// Start the engine
+MN.launch = function(renderer) {
+	// When all the page is loaded, add our container and launch
+	$(document).ready(function() {
+		console.log("Application launching done");
+		
+		var login = new MN.LoginWindow();
+		
+		login.on('connect', function(loadedUser) {
+			// Prepare user
+			MN.user = loadedUser;
+			MN.user.dir = MN.user.id + '_' + MN.user.login;
+			
+			// Create navigation bar (special case)
+			var navBar = new MN.NavBar($('body'), {});
+			navBar.show();
+			
+			new MN.ActionHandler(MN._default_actions, renderer).start(navBar);
+		
+			// Show homepage
+			navBar.fireEvent('homepage');
+		});
+		
+		login.initView();
+		renderer.append(login.getView());
+	});
+};

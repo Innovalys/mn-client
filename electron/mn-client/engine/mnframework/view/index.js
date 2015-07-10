@@ -1,10 +1,12 @@
+var MN = require('../framework');
+var remote = require('remote');
 
-MN = require('./framework.js');
+module.exports = MN;
 
 // -- Nav bar
 // ---------------------------
 // Used to navigate through every pages of the application. The navbar is always present once connected
-exports.NavBar = MN.BaseElement.extend({
+MN.NavBar = MN.BaseElement.extend({
 	init : function(renderer, values) {
 		this._super();
 		this.renderer = renderer;
@@ -61,6 +63,8 @@ exports.NavBar = MN.BaseElement.extend({
 	_initUsername : function() {
 		var me = this;
 		
+		console.log(MN);
+		
 		var navbar = $('<ul class="nav navbar-nav navbar-right"></ul>')
 		var options = $('<button type="submit" class="btn btn-default"><i class="fa fa-cogs"></i></button>');
 		var username = $('<a href="#" aria-expanded="false">' + MN.user.login + '</a>');
@@ -92,7 +96,7 @@ exports.NavBar = MN.BaseElement.extend({
 // -- Manga view
 // ---------------------------
 // View displaying informations about the selected manga
-exports.MangaInfo = MN.BaseElement.extend({
+MN.MangaInfo = MN.BaseElement.extend({
 	init : function(values) {
 		this._super();
 		this.id = "manga info";
@@ -494,10 +498,10 @@ exports.MangaInfo = MN.BaseElement.extend({
 	}
 });
 
-// -- Manga chapter read view TODO
+// -- Manga chapter read view
 // ---------------------------
 // View allowing the user to read a page for a chapter of a manga
-exports.MangaChapter = MN.BaseElement.extend({
+MN.MangaChapter = MN.BaseElement.extend({
 	init : function(values) {
 		this._super();
 		this.id = 'chapter reader';
@@ -656,9 +660,12 @@ exports.MangaChapter = MN.BaseElement.extend({
 				if(index > 0) {
 					me.images[index - 1].trigger('appear');
 					scrolling = true; // lock scrolling
-					$('html,body').animate({ scrollTop: (me.image ? me.image.offset().top - 80 : 0) }, 400).promise().always(function() {
-						scrolling = false;
-					});
+					
+					if(!me.image || me.image.offset().top != 0) {
+						$('html,body').animate({ scrollTop: (me.image ? me.image.offset().top - 80 : 0) }, 400).promise().always(function() {
+							scrolling = false;
+						});
+					}
 				}
 		   		e.preventDefault();
 		        break;
@@ -668,9 +675,12 @@ exports.MangaChapter = MN.BaseElement.extend({
 				if(index + 1 < me.images.length) {
 					me.images[index + 1].trigger('appear');
 					scrolling = true; // lock scrolling
-					$('html,body').animate({ scrollTop: (me.image ? me.image.offset().top - 80 : 0) }, 400).promise().always(function() {
-						scrolling = false;
-					});
+					
+					if(!me.image || me.image.offset().top != 0) {
+						$('html,body').animate({ scrollTop: (me.image ? me.image.offset().top - 80 : 0) }, 400).promise().always(function() {
+							scrolling = false;
+						});
+					}
 				}
 		    	e.preventDefault();
 		        break;
@@ -754,7 +764,7 @@ exports.MangaChapter = MN.BaseElement.extend({
 // -- Search view TODO
 // ---------------------------
 // View for searching manga or authors
-exports.Search = MN.BaseElement.extend({
+MN.Search = MN.BaseElement.extend({
 	init : function(values) {
 		this._super();
 		this.id = 'advanced search';
@@ -955,7 +965,7 @@ exports.Search = MN.BaseElement.extend({
 // -- Home page
 // ---------------------------
 // View displaying general informations
-exports.HomePage = MN.BaseElement.extend({
+MN.HomePage = MN.BaseElement.extend({
 	init : function(values) {
 		this._super();
 		this.id = "homepage";
@@ -1047,7 +1057,7 @@ exports.HomePage = MN.BaseElement.extend({
 // -- Options page
 // ---------------------------
 // View displaying the options of the sofware
-exports.OptionsPage = MN.BaseElement.extend({
+MN.OptionsPage = MN.BaseElement.extend({
 	init : function(values) {
 		this._super();
 		this.id = "options";
@@ -1080,7 +1090,7 @@ exports.OptionsPage = MN.BaseElement.extend({
 // -- Login window
 // ---------------------------
 // View displaying general informations
-exports.LoginWindow = MN.BaseElement.extend({
+MN.LoginWindow = MN.BaseElement.extend({
 	init : function(values) {
 		this._super();
 		this.id = "login page";
