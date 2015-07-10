@@ -79,11 +79,40 @@ app.on('ready', function() {
   // Create the browser window.
   mainWindow = new BrowserWindow({ 'min-width' : 960, 'min-height' : 640, width : 1200, height : 800});
 
+  mainWindow.crypto = crypto;
+
+  mainWindow.getDirContent = function(path, success, error) {
+    var dir = conf.download + '/' + path;
+    
+    fs.readdir(dir, function(err, files) {
+      if(err) {
+        error(err);
+        return;
+      }
+      
+      success(files);
+    });
+  }
+    // Function to read a file
+  mainWindow.readFileSync = function(path, filename, success, error) {
+    var dir = conf.download + '/' + path + '/' + filename;
+
+    var data = fs.readFileSync(dir, {encoding: 'utf-8'});
+  
+    try {
+      console.log("File loaded : " + filename);
+      return JSON.parse(data);
+    } catch (err) {
+      console.log(err);
+      return null;
+    }
+  }
+
   // Function to read a file
   mainWindow.readFile = function(path, filename, success, error) {
-    var dir = conf.download + '/' + path;
+    var file = conf.download + '/' + path + '/' + filename;
 
-    fs.readFile(dir, {encoding: 'utf-8'}, function(err, data){
+    fs.readFile(file, {encoding: 'utf-8'}, function(err, data){
       if (err){
         if(error) error(err);
         else console.log(err);
@@ -190,6 +219,23 @@ app.on('ready', function() {
     download(url, dir + '/' + filename, function(ok, error) {
       console.log("File downloaded : " + url);
       done(ok ? filename : null, error);
+    });
+  }
+  
+  mainWindow.getDownloadedFile = function(dir, filename, clbk) {
+    // Create the directory if it doesn't exist
+    filename = conf.download + dir + '/' + filename;
+    
+    console.log(filename);
+
+    fs.readFile(filename, 'utf8', function (err, data) {
+      if (!err) {
+        // Open localy the file
+        console.log("File localy loaded : " + filename);
+        clbk(filename, null);
+      } else {
+        clbk(null, err);
+      }
     });
   }
     

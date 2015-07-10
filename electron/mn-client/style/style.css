@@ -581,3 +581,9 @@ body{
 	box-shadow: 0px 0px 5px lightblue;
 	cursor: pointer;
 }
+
+.connected-chk {
+	font-weight: 100;
+	margin-left: 32px;
+	margin-bottom: -11px;
+}

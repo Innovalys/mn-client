@@ -5,7 +5,7 @@ var jQuery = $;
 module.exports = MN; // Export all
 
 // Actions used by the application to change view
-MN._default_actions = {
+MN._defaultActions = {
 	'search' : function(e) {
 		// Show search
 		return new MN.Search();
@@ -27,15 +27,41 @@ MN._default_actions = {
 	}
 };
 
+MN._defaultActionsOffline = {
+	/*'search' : function(e) {
+		// Show search
+		return new MN.Search();
+	},*/
+	'homepage' : function(e) {
+		// Show home page
+		return new MN.OfflineHomePage();
+	},
+	'manga' : function(e, manga, needReload) {
+		// Show home page
+		return new MN.MangaInfo({ manga : manga, needReload : needReload});
+	},
+	'manga-read' : function(e, manga, chapter) {
+		// Show home page
+		return new MN.MangaChapter({ manga : manga, chapter : chapter });
+	},
+	'options' : function(e) {
+		return new MN.OptionsPage();
+	}
+};
+
 // Start the engine
-MN.launch = function(renderer) {
+MN.launch = function(renderer, conf) {
+	MN.conf = conf;
+	
 	// When all the page is loaded, add our container and launch
 	$(document).ready(function() {
 		console.log("Application launching done");
 		
 		var login = new MN.LoginWindow();
 		
-		login.on('connect', function(loadedUser) {
+		login.on('connect', function(loadedUser, online) {
+			MN.online = online;
+			
 			// Prepare user
 			MN.user = loadedUser;
 			MN.user.dir = MN.user.id + '_' + MN.user.login;
@@ -44,7 +70,7 @@ MN.launch = function(renderer) {
 			var navBar = new MN.NavBar($('body'), {});
 			navBar.show();
 			
-			new MN.ActionHandler(MN._default_actions, renderer).start(navBar);
+			new MN.ActionHandler(online ? MN._defaultActions : MN._defaultActionsOffline, renderer).start(navBar);
 		
 			// Show homepage
 			navBar.fireEvent('homepage');

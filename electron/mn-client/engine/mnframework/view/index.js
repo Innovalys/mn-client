@@ -63,8 +63,6 @@ MN.NavBar = MN.BaseElement.extend({
 	_initUsername : function() {
 		var me = this;
 		
-		console.log(MN);
-		
 		var navbar = $('<ul class="nav navbar-nav navbar-right"></ul>')
 		var options = $('<button type="submit" class="btn btn-default"><i class="fa fa-cogs"></i></button>');
 		var username = $('<a href="#" aria-expanded="false">' + MN.user.login + '</a>');
@@ -170,17 +168,23 @@ MN.MangaInfo = MN.BaseElement.extend({
 		var favorisButton = $('<button type="button" class="btn btn-warning btn-xs">' + (this.manga.user_info.favoris ? 'Retirer des favoris' : 'Ajouter aux favoris') + '</button>');
 		var downloadButton = $('<button type="button" class="btn btn-info btn-xs">Télécharger le manga</button>');
 		
-		removeButton.on('click', function(e) {
-			me._collectionToggle();
-		});
-		
-		favorisButton.on('click', function(e) {
-			me._favorisToggle();
-		});
-		
-		downloadButton.on('click', function(e) {
-			me._download();
-		});
+		if(MN.online) {
+			removeButton.on('click', function(e) {
+				me._collectionToggle();
+			});
+			
+			favorisButton.on('click', function(e) {
+				me._favorisToggle();
+			});
+			
+			downloadButton.on('click', function(e) {
+				me._download();
+			});
+		} else {
+			removeButton.prop('disabled', true);
+			favorisButton.prop('disabled', true);
+			downloadButton.prop('disabled', true);
+		}
 		
 		content.append(info);
 		content.append(removeButton).append(favorisButton).append(downloadButton);
@@ -197,9 +201,13 @@ MN.MangaInfo = MN.BaseElement.extend({
 		var info = $('<p>Ce manga n\'est pas encore dans votre collection. Si vous souhaitez le lire, vous devez l\'ajouter à votre collection</p>');
 		var addButton = $('<button type="button" class="btn btn-primary btn" style="float: right;">Ajouter à la collection</button>');
 
-		addButton.on('click', function(e) {
-			me._collectionToggle();
-		});
+		if(MN.online) {
+			addButton.on('click', function(e) {
+				me._collectionToggle();
+			});
+		} else {
+			addButton.prop('disabled', true);
+		}
 		
 		content.append(info);
 		content.append(addButton);
@@ -267,10 +275,17 @@ MN.MangaInfo = MN.BaseElement.extend({
 		var button = $('<button type="button" class="btn btn-primary btn-lg btn-block" style="margin-top: 22px;">' + (this.manga.user_info && this.manga.user_info.chapter_cur ? 'Reprendre la lecture' : 'Commencer la lecture') + '</button>');
 						
 		// Load the real image
-		remote.getCurrentWindow().getFile(MN.user.dir, this.manga.cover, function (path, error) {
-			if(path != null)
-				panel.attr('src', path);
-		});
+		if(MN.online) {
+			remote.getCurrentWindow().getFile(MN.user.dir, this.manga.cover, function (path, error) {
+				if(path != null)
+					panel.attr('src', path);
+			});
+		} else {
+			remote.getCurrentWindow().getDownloadedFile(MN.user.dir, this.manga.id + '/cover.jpg', function (path, error) {
+				if(path != null)
+					panel.attr('src', path);
+			});
+		}
 			
 		if(this.manga.user_info) {
 			button.on('click', function(e) {
@@ -360,18 +375,20 @@ MN.MangaInfo = MN.BaseElement.extend({
 					
 					// Write the data
 					remote.getCurrentWindow().writeFile(me.mangaDir, 'info.json', me.manga, function() {
-						if(me.manga.chapters) {
-							me._downloadChapter(1, me.manga.chapters, function(chapter, index) {
-								// Update value
-								progressBar.setValue(index);
-								chapterInfo.html("Téléchargement du chapite " + index + '/' + me.manga.chapter_nb + ' ...');
-							}, function() {
-								// Finished
-								chapterInfo.html('Téléchargement terminé !');
-								modal.toggleDismissable();
-								modal.setOptions({ label : 'Quitter', action : function() { modal.dissmiss(); } });
-							});
-						}
+						remote.getCurrentWindow().downloadFiles(me.mangaDir, 'cover.jpg', me.manga.cover, function() {
+							if(me.manga.chapters) {
+								me._downloadChapter(1, me.manga.chapters, function(chapter, index) {
+									// Update value
+									progressBar.setValue(index);
+									chapterInfo.html("Téléchargement du chapite " + index + '/' + me.manga.chapter_nb + ' ...');
+								}, function() {
+									// Finished
+									chapterInfo.html('Téléchargement terminé !');
+									modal.toggleDismissable();
+									modal.setOptions({ label : 'Quitter', action : function() { modal.dissmiss(); } });
+								});
+							}
+						});
 					});
 				} }
 			]);
@@ -474,27 +491,34 @@ MN.MangaInfo = MN.BaseElement.extend({
 		this.container.empty();
 
 		// Perform the request
-		$.ajax({
-			type: 'GET',
-			url: conf.endpoint + 'manga/' + this.manga.source_URL + '/' + this.manga.source_ID,
-			dataType : 'json',
-			headers : MN.authHeader(MN.user.login, MN.user.pass),
-			success: function(data) {
-				me.manga = data.data;
-				me.needReload = false;
-				
-				me._initLeftPanel();  // Info & buttons
-				me._initRightPanel(); // Pages
-		
-				me.loading_stop();
-			},
-			error: function(response) {
-				MN.handleRequestError(response);
-			},
-			fail: function(response) {
-				MN.handleRequestFail(response);
-			}
-		});
+		if(MN.online) {
+			$.ajax({
+				type: 'GET',
+				url: conf.endpoint + 'manga/' + this.manga.source_URL + '/' + this.manga.source_ID,
+				dataType : 'json',
+				headers : MN.authHeader(MN.user.login, MN.user.pass),
+				success: function(data) {
+					me.manga = data.data;
+					me.needReload = false;
+					
+					me._initLeftPanel();  // Info & buttons
+					me._initRightPanel(); // Pages
+			
+					me.loading_stop();
+				},
+				error: function(response) {
+					MN.handleRequestError(response);
+				},
+				fail: function(response) {
+					MN.handleRequestFail(response);
+				}
+			});
+		} else {
+			me._initLeftPanel();  // Info & buttons
+			me._initRightPanel(); // Pages
+	
+			me.loading_stop();
+		}
 	}
 });
 
@@ -559,7 +583,6 @@ MN.MangaChapter = MN.BaseElement.extend({
 		var up = $('<button class="btn btn-default">Aller en haut</button>');
 		var down = $('<button class="btn btn-default">Aller en bas</button>');
 		var back = $('<button class="btn btn-default">Retour</button>');
-		var download = $('<button class="btn btn-default">Télécharger</button>');
 		
 		plus.on('click', function() {
 			me.images.forEach(function(image) {
@@ -595,17 +618,7 @@ MN.MangaChapter = MN.BaseElement.extend({
 			me.fireEvent('manga', e, me.manga);
 		});
 		
-		download.on('click', function() {
-			var imageToSave = [];
-			
-			me.images.forEach(function(image) {
-				imageToSave.push(image.attr('src'));
-			});
-			
-			remote.getCurrentWindow().exportFiles(imageToSave);
-		});
-		
-		this.controls.append(plus).append(minus).append('<hr/>').append(up).append(down).append(back).append('<hr/>').append(download);
+		this.controls.append(plus).append(minus).append('<hr/>').append(up).append(down).append('<hr/>').append(back);
 	},
 	_initMangaPages : function() {
 		var me = this;
@@ -962,6 +975,7 @@ MN.Search = MN.BaseElement.extend({
 	}
 });
 
+
 // -- Home page
 // ---------------------------
 // View displaying general informations
@@ -990,7 +1004,7 @@ MN.HomePage = MN.BaseElement.extend({
 		
 		values.forEach(function(manga) {
 			
-			var panel = $('<img class="img-responsive img-manga-cover" src="' + conf.image + 'cover.jpg" data-toggle="tooltip" title="' + manga.title + '" alt="' + manga.title + '" />');
+			var panel = $('<img class="img-responsive img-manga-cover" src="' + MN.conf.image + 'cover.jpg" data-toggle="tooltip" title="' + manga.title + '" alt="' + manga.title + '" />');
 			panel.tooltip(); // Add the tooltip
 			renderer.append(panel);
 			
@@ -1045,6 +1059,81 @@ MN.HomePage = MN.BaseElement.extend({
 
 		this._initLastFavoris();
 		this._initLastNonFavoris();
+		
+		this.renderer.append(this.container.append(this.firstLine).append(this.secondLine));
+	},
+	updateView : function() {
+		// Update displayed values
+		this._updateValues();
+	}
+});
+
+// -- Offline home page
+// ---------------------------
+// View displaying general informations
+MN.OfflineHomePage = MN.BaseElement.extend({
+	init : function(values) {
+		this._super();
+		this.id = "homepage (offline)";
+	},
+	_initLastDownloaded : function() {
+		var panel = $('<div class="panel panel-default"></div>');
+		var header = $('<div class="panel-heading"><h3 class="panel-title">Derniers manga téléchargés</h3></div>');
+		this.downloadedRenderer = $('<div class="panel-body"></div>');
+		
+		this.firstLine.append(panel.append(header).append(this.downloadedRenderer));
+	},
+	_updateMangaList : function(values, renderer) {
+		var me = this;
+		renderer.empty();
+		
+		values.forEach(function(manga) {
+			
+			var panel = $('<img class="img-responsive img-manga-cover" src="' + MN.conf.image + 'cover.jpg" data-toggle="tooltip" title="' + manga.title + '" alt="' + manga.title + '" />');
+			panel.tooltip(); // Add the tooltip
+			renderer.append(panel);
+			
+			panel.on('click', function(e) {
+				me.fireEvent("manga", e, manga);
+			});
+			
+			// Load the real image
+			remote.getCurrentWindow().getDownloadedFile(MN.user.dir, manga.id + '/cover.jpg', function (path, error) {
+				if(path != null)
+					panel.attr('src', path);
+			});
+		});
+	},
+	_updateValues : function() {
+		var me = this;
+		
+		remote.getCurrentWindow().getDirContent(MN.user.dir, function(dirs) {
+			
+			var mangas = [];
+			
+			if(dirs && dirs.length > 0) {
+					// Each dir is a manga
+				for(var i = 0; i < dirs.length; i++) {
+					var manga = remote.getCurrentWindow().readFileSync(MN.user.dir + '/' + dirs[i], 'info.json');
+					
+					if(manga)
+						mangas.push(manga);
+				}
+			}
+			
+			me._updateMangaList(mangas, me.downloadedRenderer);
+			
+		}, function(err) {
+			console.log(err);
+			MN.notify("Aucun manga téléchargé", "Aucun manga n'a été téléchargé pour une lecture en mode hors ligne.<br/><br/>"+
+				                                "Vous devez manuellement télécharger chaque manga que vous souhaitez pouvoir lire sans connexion internet sur sa page d'information", 'error');
+		});
+	},
+	initView : function() {
+		this.container = $('<div class="container"></div>');
+		this.firstLine = $('<div class="row"></div>');
+
+		this._initLastDownloaded();
 		
 		this.renderer.append(this.container.append(this.firstLine).append(this.secondLine));
 	},
@@ -1135,29 +1224,61 @@ MN.LoginWindow = MN.BaseElement.extend({
 			me._toggleForms(true);
 			me.connect.html('Chargement...');
 
-     		$.ajax({
-			     type: 'GET',
-			     url: conf.endpoint + 'user' ,
-			     dataType : 'json',
-			     headers: MN.authHeader(me.username.val(), me.password.val()),
-			     success: function(response) {
-			     	me.fireEvent('connect', response.data);
-			     },
-			     error: function(response) {
-					 console.log(response)
-					if(response.responseJSON && response.responseJSON.data && response.responseJSON.data.code == 403)
-						MN.notify("Nom de compte et/ou mot de passe invalide", "Le nom de compte et le formulaire ne correspondent à aucun compte", 'error');
-					else
-						MN.handleRequestError(response);
+			// Offline connection
+			if(me.online.prop('checked')) {
+				remote.getCurrentWindow().readFile('', me.username.val() + '.json', function (user) {
+					// Check password
+					var check = remote.getCurrentWindow().crypto.createHash('md5').update(me.username.val() + me.password.val()).digest('hex');
+					if(user.check != check) {
+						MN.notify("Mot de passe invalide", "Le mot de passe n'est pas valide", 'error');
+						me._toggleForms(false);
+						me.connect.html('Connexion');
+					} else {
+				     	me.fireEvent('connect', user, false);
+					}
+				}, function () {
+					MN.notify("Compte local in trouvable", "Le nom de compte ne correspondent à aucun compte localement sauvegardé", 'error');
 					me._toggleForms(false);
 					me.connect.html('Connexion');
-			     },
-			     fail: function(response) {
-					MN.handleRequestFail(response);
-					me._toggleForms(false);
-					me.connect.html('Connexion');
-			     }
-	    	});
+				});
+			} 
+			// Online connection
+			else {
+	     		$.ajax({
+				     type: 'GET',
+				     url: MN.conf.endpoint + 'user' ,
+				     dataType : 'json',
+				     headers: MN.authHeader(me.username.val(), me.password.val()),
+				     success: function(response) {
+						// Save the current user
+						var user = response.data;
+						var tmp_user = { id    : user.id,
+							             login : 'test',
+										 check : remote.getCurrentWindow().crypto.createHash('md5').update(user.login + user.pass).digest('hex') };
+						
+						remote.getCurrentWindow().writeFile('', user.login + '.json', tmp_user, function () {
+							// Nothing
+						}, function(error) {
+							MN.notify("Impossible de sauvegarder le compte", "Il ne sera pas possible d'accès à ce compte en mode hors-ligne", 'warning');
+						});
+						
+				     	me.fireEvent('connect', response.data, true);
+				     },
+				     error: function(response) {
+						if(response.responseJSON && response.responseJSON.data && response.responseJSON.data.code == 403)
+							MN.notify("Nom de compte et/ou mot de passe invalide", "Le nom de compte et le formulaire ne correspondent à aucun compte", 'error');
+						else
+							MN.handleRequestError(response);
+						me._toggleForms(false);
+						me.connect.html('Connexion');
+				     },
+				     fail: function(response) {
+						MN.handleRequestFail(response);
+						me._toggleForms(false);
+						me.connect.html('Connexion');
+				     }
+		    	});
+			}
 		});
 		
 		this.register.on('click', function(e) {
@@ -1173,7 +1294,8 @@ MN.LoginWindow = MN.BaseElement.extend({
 		
 		this.passwordGroup = $('<div class="input-group"></div>').append($('<span class="input-group-addon" id="basic-addon1"><span class="fa fa-lock"></span></span>'));
 		this.password = $('<input name="password" type="password" class="form-control" placeholder="Password">');
-		
+
+		this.online = $('<input type="checkbox" />')		
 		this.connect = $('<button type="submit" class="btn bnt-block btn-lg btn-primary">Connexion</button>');
 		this.register = $('<button type="submit" class="btn btn-block btn-lg btn-default">Inscription</button>');
 
@@ -1183,7 +1305,7 @@ MN.LoginWindow = MN.BaseElement.extend({
 		
 		form.append(this.usernameGroup.append(this.username));
 		form.append(this.passwordGroup.append(this.password));
-		form.append(this.connect).append(this.register);
+		form.append($('<label class="checkbox connected-chk">Mode hors line</label>').prepend(this.online)).append(this.connect).append(this.register);
 		
 		this.renderer.append(title).append(form);
 	},

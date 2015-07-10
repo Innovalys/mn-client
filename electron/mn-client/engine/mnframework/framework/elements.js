@@ -371,6 +371,7 @@ MN.ActionHandler = MN.Class.extend({
 						me.inAction = false;
 					});
 				} catch(err) {
+					console.error(err);
 					MN.notify('Erreur', 'Une erreur inattendue est survenue : "' + err + '"', 'error');
 					me.inAction = false;
 				}
@@ -401,6 +402,7 @@ MN.ActionHandler = MN.Class.extend({
 								me.inAction = false;
 							});
 						} catch(err) {
+							console.error(err);
 							MN.notify('Erreur', 'Une erreur inattendue est survenue : "' + err + '"', 'error');
 							me.inAction = false;
 						}
@@ -439,6 +441,7 @@ MN.ActionHandler = MN.Class.extend({
 						me._update();
 					});
 				} catch(err) {
+					console.error(err);
 					MN.notify('Erreur', 'Une erreur inattendue est survenue : "' + err + '"', 'error');
 					me.inAction = false;
 				}
