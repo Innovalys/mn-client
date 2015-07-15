@@ -375,7 +375,7 @@ MN.MangaInfo = MN.BaseElement.extend({
 					
 					// Write the data
 					remote.getCurrentWindow().writeFile(me.mangaDir, 'info.json', me.manga, function() {
-						remote.getCurrentWindow().downloadFiles(me.mangaDir, 'cover.jpg', me.manga.cover, function() {
+						remote.getCurrentWindow().downloadFile(me.mangaDir, 'cover.jpg', me.manga.cover, function() {
 							if(me.manga.chapters) {
 								me._downloadChapter(1, me.manga.chapters, function(chapter, index) {
 									// Update value
