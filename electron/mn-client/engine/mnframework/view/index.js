@@ -578,11 +578,13 @@ MN.MangaChapter = MN.BaseElement.extend({
 	},
 	_initControls : function() {
 		var me = this;
+		
 		var plus = $('<button class="btn btn-primary">+</button>');
 		var minus = $('<button class="btn btn-primary">-</button>');
 		var up = $('<button class="btn btn-default">Aller en haut</button>');
 		var down = $('<button class="btn btn-default">Aller en bas</button>');
 		var back = $('<button class="btn btn-default">Retour</button>');
+		var download = $('<button class="btn btn-default">Télécharger</button>');
 		
 		plus.on('click', function() {
 			me.images.forEach(function(image) {
@@ -618,11 +620,19 @@ MN.MangaChapter = MN.BaseElement.extend({
 			me.fireEvent('manga', e, me.manga);
 		});
 		
-		this.controls.append(plus).append(minus).append('<hr/>').append(up).append(down).append('<hr/>').append(back);
+		download.on('click', function(e) {
+			remote.getCurrentWindow().exportFiles(me.imageFiles, function(path, error) {
+				if(!error)
+					MN.notify('Chapitre sauvegardé', 'Le chapitre en cours de lecture a été sauvegardé dans le fichier ' + path);	
+			});
+		});
+		
+		this.controls.append(plus).append(minus).append('<hr/>').append(up).append(down).append('<hr/>').append(back).append(download);
 	},
 	_initMangaPages : function() {
 		var me = this;
 		this.images = [];  // All the images
+		this.imageFiles = [];
 		this.image = null; // Current image
 		
 		var scrolling = false; // If any code controller scrolling is happening in the view
@@ -648,6 +658,8 @@ MN.MangaChapter = MN.BaseElement.extend({
 						loader.remove();
 					});
 				}
+				
+				me.imageFiles.push(path);
 			});
 			
 			image.on('appear', function(e) {

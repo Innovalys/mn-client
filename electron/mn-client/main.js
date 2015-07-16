@@ -5,6 +5,7 @@ var http   = require('http');
 var https   = require('https');
 var mkpath = require('mkpath');
 var dialog = require('dialog');
+var archiver = require('archiver'); // Zip export
 
 //var request = require('./request/request.js');
 var crypto = require('crypto'); // Used to read local files
@@ -159,22 +160,11 @@ app.on('ready', function() {
   // Return the application path
   mainWindow.getPath = function () {
     return __dirname;
-  };
+  }
   
   mainWindow.getConf = function() {
     return conf;
   }
-  
-  // TODO
-  mainWindow.exportFiles = function(files) {
-    
-    dialog.showSaveDialog(mainWindow, { title : "Emplacement de la sauvegarde" }, function(filename) {
-      if(filename) {
-         console.log(filename);
-      }
-    });
-    
-  };
 
   // and load the index.html of the app.
   mainWindow.loadUrl('file://' + __dirname + '/index.html');
@@ -202,6 +192,29 @@ app.on('ready', function() {
       });
     }
     
+  }
+  
+  // TODO
+  mainWindow.exportFiles = function(files, done) {
+    
+    dialog.showSaveDialog(mainWindow, { title : "Emplacement de la sauvegarde" }, function(filename) {
+      if(filename) {
+        var archive = archiver('zip');
+        
+        // Set to the selected filename
+        archive.pipe(fs.createWriteStream(filename));
+
+        // Export each files
+        files.forEach(function(file, index) {
+          archive.append(fs.createReadStream(file), { name : 'page' + index + '.' + fileExtension(file) });
+        });
+        
+        // Finalize the zip
+        archive.finalize();
+      }
+      
+      done(filename, filename ? "No filename specified" : null);
+    });
   }
     
   // Download a file
@@ -290,4 +303,6 @@ app.on('ready', function() {
     // when you should delete the corresponding element.
     mainWindow = null;
   });
+  
+  mainWindow.setMenu(null);
 });
