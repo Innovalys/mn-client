@@ -11,6 +11,10 @@ MN._defaultActions = {
 		// Show search
 		return new MN.Search(info);
 	},
+	'user' : function(e, info) {
+		// Show user page
+		return new MN.UserInfo(info);
+	},
 	'homepage' : function(e) {
 		// Show home page
 		return new MN.HomePage();

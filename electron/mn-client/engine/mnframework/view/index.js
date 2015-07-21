@@ -68,7 +68,7 @@ MN.NavBar = MN.BaseElement.extend({
 		var username = $('<a href="#" aria-expanded="false">' + MN.user.login + '</a>');
 		
 		options.on('click', function(e) { me.fireEvent('options', e); });
-		username.on('click', function(e) { me.fireEvent('user', e); });
+		username.on('click', function(e) { me.fireEvent('user', e, { id : MN.user.id }); });
 		
 		navbar.append('<li><a>&nbsp;</a></li>').append($('<li></li>').append(options)).append($('<li></li>').append(username));
 		
@@ -95,26 +95,70 @@ MN.NavBar = MN.BaseElement.extend({
 // -- User view
 // ---------------------------
 // View displaying informations about the selected manga
-MN.MangaInfo = MN.BaseElement.extend({
+MN.UserInfo = MN.BaseElement.extend({
 	init : function(values) {
 		this._super();
 		this.id = "user info";
 		this.userID = values.id || MN.user.id;
 	},
 	_initContent : function() {
-		// Info
-		var title = $('<h2>' + this.user.login + '</h2>');
-		var name = $('<h4> Nom : ' + this.user.name + '</h4>');
-
-		// Actions
-		var followUser = $('<button value="Suivre l\'utilisateur" ></button>');
 
 		// TODO : show list of following users
 		//        show list of users he follows
 		//        
 		//        Avatar ? With only URLs ? TODO
 
+		this._initUserInfo();
+		this._initFollowedPanel();
+		this._initFollowingPanel();
+	},
+	_initUserInfo : function() {
+		// Info
+		var title = $('<h2>' + this.user.login + '</h2>');
+		var name = $('<h4> Nom : ' + this.user.name + '</h4>');
+
+		// Actions
+		var followUser = $('<button type="button" class="btn">Suivre l\'utilisateur</button>');
+
 		this.container.append(title).append(name).append(followUser);
+	},
+	_initFollowedPanel : function() {
+		var me = this;
+
+		var panel = $('<div class="panel panel-default"></div>');
+		var header = $('<div class="panel-heading"><h3 class="panel-title">Utilisateurs suivit</h3></div>');
+		var content = $('<div class="panel-body"></div>');
+		
+		this.user.followed.forEach(function(user) {
+			var userButton = $('<button type="button" class="btn btn-info btn-xs btn-tag">' + user.login + '</button>');
+			userButton.on('click', function(e) {
+				me.fireEvent('user', e, { id : user.id });
+			});
+
+			content.append(userButton);
+		});
+
+		panel.append(header).append(content);
+		this.container.append(panel);
+	},
+	_initFollowingPanel : function() {
+		var me = this;
+		
+		var panel = $('<div class="panel panel-default"></div>');
+		var header = $('<div class="panel-heading"><h3 class="panel-title">Utilisateurs abonnés</h3></div>');
+		var content = $('<div class="panel-body"></div>');
+		
+		this.user.following.forEach(function(user) {
+			var userButton = $('<button type="button" class="btn btn-info btn-xs btn-tag">' + user.login + '</button>');
+			userButton.on('click', function(e) {
+				me.fireEvent('user', e, { id : user.id });
+			});
+
+			content.append(userButton);
+		});
+
+		panel.append(header).append(content);
+		this.container.append(panel);
 	},
 	initView : function() {
 		this.container = $('<div class="container" ></div>');
@@ -129,7 +173,7 @@ MN.MangaInfo = MN.BaseElement.extend({
 		// Perform the request
 		$.ajax({
 			type: 'GET',
-			url: conf.endpoint + 'manga/user/' + this.userID,
+			url: conf.endpoint + 'user/' + this.userID,
 			dataType : 'json',
 			headers : MN.authHeader(MN.user.login, MN.user.pass),
 			success: function(data) {
