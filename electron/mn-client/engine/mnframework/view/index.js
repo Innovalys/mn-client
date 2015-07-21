@@ -91,6 +91,65 @@ MN.NavBar = MN.BaseElement.extend({
 	}
 });
 
+
+// -- User view
+// ---------------------------
+// View displaying informations about the selected manga
+MN.MangaInfo = MN.BaseElement.extend({
+	init : function(values) {
+		this._super();
+		this.id = "user info";
+		this.userID = values.id || MN.user.id;
+	},
+	_initContent : function() {
+		// Info
+		var title = $('<h2>' + this.user.login + '</h2>');
+		var name = $('<h4> Nom : ' + this.user.name + '</h4>');
+
+		// Actions
+		var followUser = $('<button value="Suivre l\'utilisateur" ></button>');
+
+		// TODO : show list of following users
+		//        show list of users he follows
+		//        
+		//        Avatar ? With only URLs ? TODO
+
+		this.container.append(title).append(name).append(followUser);
+	},
+	initView : function() {
+		this.container = $('<div class="container" ></div>');
+		this.renderer.append(this.container);
+	},
+	updateView : function() {
+		var me = this;
+		
+		this.loading_start();
+		this.container.empty();
+
+		// Perform the request
+		$.ajax({
+			type: 'GET',
+			url: conf.endpoint + 'manga/user/' + this.userID,
+			dataType : 'json',
+			headers : MN.authHeader(MN.user.login, MN.user.pass),
+			success: function(data) {
+				me.user = data.data;
+				
+				me._initContent();  // Info & buttons
+		
+				me.loading_stop();
+			},
+			error: function(response) {
+				MN.handleRequestError(response);
+			},
+			fail: function(response) {
+				MN.handleRequestFail(response);
+			}
+		});
+	}
+});
+
+
 // -- Manga view
 // ---------------------------
 // View displaying informations about the selected manga
@@ -1030,8 +1089,11 @@ MN.HomePage = MN.BaseElement.extend({
 	},
 	_updateMangaList : function(values, renderer) {
 		var me = this;
+
+		// Remove all results
 		renderer.empty();
-		
+
+		// Add for each manga
 		values.forEach(function(manga) {
 			
 			var panel = $('<img class="img-responsive img-manga-cover" src="' + MN.conf.image + 'cover.jpg" data-toggle="tooltip" title="' + manga.title + '" alt="' + manga.title + '" />');
@@ -1091,6 +1153,7 @@ MN.HomePage = MN.BaseElement.extend({
 		this._initLastNonFavoris();
 		
 		this.renderer.append(this.container.append(this.firstLine).append(this.secondLine));
+
 	},
 	updateView : function() {
 		// Update displayed values
