@@ -882,7 +882,11 @@ MN.Search = MN.BaseElement.extend({
 		var panel = $('<div class="panel panel-default"></div>');
 		var header = $('<div class="panel-heading"><h3 class="panel-title">Résultats de la recherche</h3></div>');
 		this.resultContent = $('<div class="panel-body"></div>');
-		
+
+		this.spinner = $('<div></div>').append($('<div class="loader">Loading...</div>')).append('<div class="container loader-text">Chargement en cours...</div>');
+		this.spinner.css('display', 'none');
+
+		this.container.append(this.spinner);
 		this.container.append(this.resultsContainer.append(panel.append(header).append(this.resultContent)));
 	},
 	_search : function(api, keywords) {
@@ -892,10 +896,11 @@ MN.Search = MN.BaseElement.extend({
 		this.searchContainer.find('*').attr('disabled', true);
 			
 		// Hide existing results
-		this.resultContent.slideUp(function() {
+		this.resultsContainer.fadeOut(function() {
 			
-			// Empty results
+			// Empty results & show spinner
 			me.resultContent.empty();
+			me.spinner.fadeIn();
 			
 			// Start timer
 			var start = new Date().getTime();
@@ -982,7 +987,10 @@ MN.Search = MN.BaseElement.extend({
 		});
 		
 		this.resultContent.append(resultTable);
-		this.resultContent.slideDown();
+		
+		this.spinner.fadeOut(function() {
+			me.resultsContainer.fadeIn();
+		});
 	},
 	initView : function() {
 		this.container = $('<div class="container" ></div>');
