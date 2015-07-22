@@ -60,7 +60,7 @@ MN.Search = MN.BaseElement.extend({
 		keywordsInput.keypress(function(e) {
 			if ( e.which == 13 ) {
 				e.preventDefault();
-				me._search(sourceSelected.val(), keywordsInput.val());
+				me._searchGeneral(sourceSelected.val(), keywordsInput.val());
 			}
 		});
 		
@@ -74,7 +74,7 @@ MN.Search = MN.BaseElement.extend({
 		panel.append(header).append(content);
 		
 		searchField.on('click', function(e) {
-			me._search(sourceSelected.val(), keywordsInput.val());
+			me._searchGeneral(sourceSelected.val(), keywordsInput.val());
 		});
 		
 		this.searchContainer.append($('<div class="col-md-4"></div>').append(panel));
@@ -82,14 +82,47 @@ MN.Search = MN.BaseElement.extend({
 	_initAuthorSearchFields : function() {
 		
 	},
-	_initUserSearchFields : function() {
+	_initMangaPersonalSearchFields : function() {
+		var me = this;
+		var panel = $('<div class="panel panel-danger panel-search"></div>');
+		var header = $('<div class="panel-heading"><h3 class="panel-title">Recherche dans sa librairie</h3></div>');
+		var content = $('<div class="panel-body"></div>');
 		
+		var values = $('<ul></ul>');
+		
+		// Keywords
+		var keywords = $('<li></li>');
+		var keywordsInput = $('<input type="text" />');
+		keywords.append('<label>Nom du manga :</label>').append('<br/>').append(keywordsInput);
+		values.append(keywords);
+		
+		keywordsInput.keypress(function(e) {
+			if ( e.which == 13 ) {
+				e.preventDefault();
+				me._searchPersonal(keywordsInput.val());
+			}
+		});
+		
+		if(this.toSearch)
+			keywordsInput.val(this.toSearch);
+			
+		// Search value
+		var searchField = $('<button type="submit" class="btn btn-default"><i class="fa fa-search"></i></button>');
+		
+		content.append(values).append(searchField);
+		panel.append(header).append(content);
+		
+		searchField.on('click', function(e) {
+			me._searchPersonal(keywordsInput.val());
+		});
+		
+		this.searchContainer.append($('<div class="col-md-4"></div>').append(panel));
 	},
 	_initSearchFields : function() {
 		this.searchContainer = $('<div class="row searchBlock"></div>');
 		
 		this._initMangaSearchFields();
-		//this._initMangaSearchFields(); TODO
+		this._initMangaPersonalSearchFields();
 		//this._initMangaSearchFields(); TODO
 		
 		this.container.append(this.searchContainer);
@@ -106,7 +139,7 @@ MN.Search = MN.BaseElement.extend({
 		this.container.append(this.spinner);
 		this.container.append(this.resultsContainer.append(panel.append(header).append(this.resultContent)));
 	},
-	_search : function(api, keywords) {
+	_search : function(uri) {
 		var me = this;
 			
 		// Desactivate all the components of the form
@@ -125,13 +158,14 @@ MN.Search = MN.BaseElement.extend({
 			// Perform the request
 			$.ajax({
 				type: 'GET',
-				url: conf.endpoint + 'manga/search/' + api + '/' + encodeURIComponent(keywords),
+				url: conf.endpoint + uri,
 				dataType : 'json',
 				headers : MN.authHeader(MN.user.login, MN.user.pass),
 				success: function(response) {
 					var end = new Date().getTime();
 					var time = end - start;
-
+					console.log(uri);
+					console.log(response.data);
 					MN.notify("Recherche effectuée", "La recherche a été effectuée avec succès, et a retournée " + response.data.length + ' résultat(s) en ' + time + 'ms');
 					me._showResults(response.data);
 				},
@@ -145,6 +179,12 @@ MN.Search = MN.BaseElement.extend({
 				me.searchContainer.find('*').attr('disabled', false);
 			});
 		});
+	},
+	_searchGeneral : function(api, keywords) {
+		this._search('manga/search/' + api + '/' + encodeURIComponent(keywords));
+	},
+	_searchPersonal : function(keywords) {
+		this._search('user/search/' + MN.user.id + '/' + encodeURIComponent(keywords));
 	},
 	_showResults : function(results) {
 		var me = this;

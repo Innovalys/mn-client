@@ -49,7 +49,7 @@ MN.NavBar = MN.BaseElement.extend({
 		
 		// Search
 		var search_button = $('<li><a href="#">Recherche avancée</a></li>');
-		search_button.on('click', function(e) { me.fireEvent('searchpage', e); });
+		search_button.on('click', function(e) { me.fireEvent('search', e); });
 		buttons.append(search_button);
 		
 		this.container.append(buttons);
