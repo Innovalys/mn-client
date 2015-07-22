@@ -25,13 +25,23 @@ MN.UserInfo = MN.BaseElement.extend({
 	},
 	_initUserInfo : function() {
 		// Info
-		var title = $('<h2>' + this.user.login + '</h2>');
-		var name = $('<h4> Nom : ' + this.user.name + '</h4>');
+		var title = $('<h1>' + this.user.login + '</h1>');
+
+		var panel = $('<div class="panel panel-default"></div>');
+		var header = $('<div class="panel-heading"><h3 class="panel-title">Informations</h3></div>');
+		var content = $('<div class="panel-body"></div>');
+
+		var infos = $('<ul></ul>');
+
+		// Long name
+		infos.append($('<li>Nom complet : ' + this.user.name + '</li>'));
 
 		// Actions
-		var followUser = $('<button type="button" class="btn">Suivre l\'utilisateur</button>');
+		var followUser = $('<button type="button" class="btn btn-warning btn-xs" style="margin-left: -17px; margin-top: 10px; margin-bottom: -10px;">Suivre l\'utilisateur</button>');
+		infos.append(followUser);
 
-		this.container.append(title).append(name).append(followUser);
+		panel.append(header).append(content.append(infos));
+		this.container.append(title).append(panel);
 	},
 	_initFollowedPanel : function() {
 		var me = this;
