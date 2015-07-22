@@ -60,7 +60,8 @@ MN.Search = MN.BaseElement.extend({
 		keywordsInput.keypress(function(e) {
 			if ( e.which == 13 ) {
 				e.preventDefault();
-				me._searchGeneral(sourceSelected.val(), keywordsInput.val());
+				if(keywordsInput.val().length > 0)
+					me._searchGeneral(sourceSelected.val(), keywordsInput.val());
 			}
 		});
 		
@@ -74,7 +75,8 @@ MN.Search = MN.BaseElement.extend({
 		panel.append(header).append(content);
 		
 		searchField.on('click', function(e) {
-			me._searchGeneral(sourceSelected.val(), keywordsInput.val());
+			if(keywordsInput.val().length > 0)
+				me._searchGeneral(sourceSelected.val(), keywordsInput.val());
 		});
 		
 		this.searchContainer.append($('<div class="col-md-4"></div>').append(panel));
@@ -99,7 +101,8 @@ MN.Search = MN.BaseElement.extend({
 		keywordsInput.keypress(function(e) {
 			if ( e.which == 13 ) {
 				e.preventDefault();
-				me._searchPersonal(keywordsInput.val());
+				if(keywordsInput.val().length > 0)
+					me._searchPersonal(keywordsInput.val());
 			}
 		});
 		
@@ -113,7 +116,8 @@ MN.Search = MN.BaseElement.extend({
 		panel.append(header).append(content);
 		
 		searchField.on('click', function(e) {
-			me._searchPersonal(keywordsInput.val());
+			if(keywordsInput.val().length > 0)
+				me._searchPersonal(keywordsInput.val());
 		});
 		
 		this.searchContainer.append($('<div class="col-md-4"></div>').append(panel));
@@ -164,8 +168,7 @@ MN.Search = MN.BaseElement.extend({
 				success: function(response) {
 					var end = new Date().getTime();
 					var time = end - start;
-					console.log(uri);
-					console.log(response.data);
+
 					MN.notify("Recherche effectuée", "La recherche a été effectuée avec succès, et a retournée " + response.data.length + ' résultat(s) en ' + time + 'ms');
 					me._showResults(response.data);
 				},
