@@ -33,8 +33,31 @@ MN.UserInfo = MN.BaseElement.extend({
 		infos.append($('<li>Nom complet : ' + this.user.name + '</li>'));
 
 		// Actions
-		var followUser = $('<button type="button" class="btn btn-warning btn-xs" style="margin-left: -17px; margin-top: 10px; margin-bottom: -10px;">Suivre l\'utilisateur</button>');
-		infos.append(followUser);
+		if(this.user.id != MN.user.id) {
+			var followed = false;
+			for(var i = 0; i < this.user.following.length; i++) {
+				if(this.user.following[i].id == MN.user.id) {
+					followed = true;
+					break;
+				}
+			}
+
+			var followUser = $('<button type="button" class="btn btn-warning btn-xs" style="margin-left: -17px; margin-top: 10px; margin-bottom: -10px;"></button>');
+			
+			if(followed) {
+				followUser.append('Arrêter de suivre l\'utilisateur');
+				followUser.on('click', function(e) {
+					
+				});
+			} else {
+				followUser.append('Suivre l\'utilisateur');
+				followUser.on('click', function(e) {
+					
+				});
+			}
+
+			infos.append(followUser);
+		}
 
 		var showMangas = $('<button type="button" class="btn btn-success btn-xs" style="margin-left: 0px; margin-top: 10px; margin-bottom: -10px;">Afficher la collection de l\'utilisateur</button>');
 		infos.append(showMangas);

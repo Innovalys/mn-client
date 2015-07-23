@@ -55,6 +55,11 @@ body{
 	margin-right: 7px;
 }
 
+.register p {
+	margin-top: 5px;
+	margin-bottom: 5px;
+}
+
 .title{
 	text-align:center;
 }
@@ -164,7 +169,7 @@ body{
 	bottom: 24px;
 	right: 24px;
 
-	z-index: 9999;
+	z-index: 999999999;
 	width: 500px;
 	position: absolute;
 	padding: 25px;
