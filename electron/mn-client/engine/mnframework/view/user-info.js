@@ -107,7 +107,7 @@ MN.UserInfo = MN.BaseElement.extend({
 		var me = this;
 
 		var panel = $('<div class="panel panel-default"></div>');
-		var header = $('<div class="panel-heading"><h3 class="panel-title">Utilisateurs suivit</h3></div>');
+		var header = $('<div class="panel-heading"><h3 class="panel-title">Utilisateurs abonnés</h3></div>');
 		var content = $('<div class="panel-body"></div>');
 		
 		this.user.followed.forEach(function(user) {
@@ -126,7 +126,7 @@ MN.UserInfo = MN.BaseElement.extend({
 		var me = this;
 		
 		var panel = $('<div class="panel panel-default"></div>');
-		var header = $('<div class="panel-heading"><h3 class="panel-title">Utilisateurs abonnés</h3></div>');
+		var header = $('<div class="panel-heading"><h3 class="panel-title">Utilisateurs suivit</h3></div>');
 		var content = $('<div class="panel-body"></div>');
 		
 		this.user.following.forEach(function(user) {

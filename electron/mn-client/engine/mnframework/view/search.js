@@ -367,7 +367,7 @@ MN.Search = MN.BaseElement.extend({
 			});
 
 			// Name
-			row.append('<td>' + result.name + '</td>');
+			row.append('<td>' + (result.name ? result.name : "" ) + '</td>');
 
 			// Number of followers & following
 			var infos = $('<td></td>');
