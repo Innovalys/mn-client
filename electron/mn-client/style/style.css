@@ -588,3 +588,7 @@ body{
 	margin-left: 32px;
 	margin-bottom: -11px;
 }
+
+.clickable:hover {
+	cursor: pointer;
+}

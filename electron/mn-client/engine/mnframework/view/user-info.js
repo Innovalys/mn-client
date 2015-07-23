@@ -13,17 +13,13 @@ MN.UserInfo = MN.BaseElement.extend({
 		this.userID = values.id || MN.user.id;
 	},
 	_initContent : function() {
-
-		// TODO : show list of following users
-		//        show list of users he follows
-		//        
-		//        Avatar ? With only URLs ? TODO
-
 		this._initUserInfo();
 		this._initFollowedPanel();
 		this._initFollowingPanel();
 	},
 	_initUserInfo : function() {
+		var me = this;
+
 		// Info
 		var title = $('<h1>' + this.user.login + '</h1>');
 
@@ -39,6 +35,13 @@ MN.UserInfo = MN.BaseElement.extend({
 		// Actions
 		var followUser = $('<button type="button" class="btn btn-warning btn-xs" style="margin-left: -17px; margin-top: 10px; margin-bottom: -10px;">Suivre l\'utilisateur</button>');
 		infos.append(followUser);
+
+		var showMangas = $('<button type="button" class="btn btn-success btn-xs" style="margin-left: 0px; margin-top: 10px; margin-bottom: -10px;">Afficher la collection de l\'utilisateur</button>');
+		infos.append(showMangas);
+
+		showMangas.on('click', function(e) {
+			me.fireEvent('manga-all', e, { user : me.user });
+		});
 
 		panel.append(header).append(content.append(infos));
 		this.container.append(title).append(panel);

@@ -7,6 +7,7 @@ module.exports = MN;
 var components = ['login',
 				  'navbar',
 				  'homepage',
+				  'manga-all',
 				  'manga-info',
 				  'manga-chapter',
 				  'search',

@@ -15,6 +15,11 @@ MN._defaultActions = {
 		// Show user page
 		return new MN.UserInfo(info);
 	},
+	'manga-all' : function(e, info) {
+		console.log(info)
+		// Show user page
+		return new MN.MangaAll(info);
+	},
 	'homepage' : function(e) {
 		// Show home page
 		return new MN.HomePage();
@@ -33,10 +38,6 @@ MN._defaultActions = {
 };
 
 MN._defaultActionsOffline = {
-	/*'search' : function(e) {
-		// Show search
-		return new MN.Search();
-	},*/
 	'homepage' : function(e) {
 		// Show home page
 		return new MN.OfflineHomePage();

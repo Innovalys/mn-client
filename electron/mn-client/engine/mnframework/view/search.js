@@ -11,6 +11,7 @@ MN.Search = MN.BaseElement.extend({
 		this._super();
 		this.id = 'advanced search';
 		
+			console.log(values);
 		if(values) {
 			this.toSearch = values.manga; // only handle manga for now
 		}
@@ -81,8 +82,43 @@ MN.Search = MN.BaseElement.extend({
 		
 		this.searchContainer.append($('<div class="col-md-4"></div>').append(panel));
 	},
-	_initAuthorSearchFields : function() {
+	_initUserSearchFields : function() {
+		var me = this;
+		var panel = $('<div class="panel panel-warning panel-search"></div>');
+		var header = $('<div class="panel-heading"><h3 class="panel-title">Recherche utilisateur</h3></div>');
+		var content = $('<div class="panel-body"></div>');
 		
+		var values = $('<ul></ul>');
+		
+		// Keywords
+		var keywords = $('<li></li>');
+		var keywordsInput = $('<input type="text" />');
+		keywords.append('<label>Login utilisateur :</label>').append('<br/>').append(keywordsInput);
+		values.append(keywords);
+		
+		keywordsInput.keypress(function(e) {
+			if ( e.which == 13 ) {
+				e.preventDefault();
+				if(keywordsInput.val().length > 0)
+					me._searchUser(keywordsInput.val());
+			}
+		});
+		
+		if(this.toSearch)
+			keywordsInput.val(this.toSearch);
+			
+		// Search value
+		var searchField = $('<button type="submit" class="btn btn-default"><i class="fa fa-search"></i></button>');
+		
+		content.append(values).append(searchField);
+		panel.append(header).append(content);
+		
+		searchField.on('click', function(e) {
+			if(keywordsInput.val().length > 0)
+				me._searchUser(keywordsInput.val());
+		});
+		
+		this.searchContainer.append($('<div class="col-md-4"></div>').append(panel));
 	},
 	_initMangaPersonalSearchFields : function() {
 		var me = this;
@@ -127,12 +163,12 @@ MN.Search = MN.BaseElement.extend({
 		
 		this._initMangaSearchFields();
 		this._initMangaPersonalSearchFields();
-		//this._initMangaSearchFields(); TODO
+		this._initUserSearchFields();
 		
 		this.container.append(this.searchContainer);
 	},
 	_initResultsFields : function() {
-		this.resultsContainer = $('<div class="row searchBlock"></div>');
+		this.resultsContainer = $('<div class="row searchBlock" style="display: none"></div>');
 		var panel = $('<div class="panel panel-default"></div>');
 		var header = $('<div class="panel-heading"><h3 class="panel-title">Résultats de la recherche</h3></div>');
 		this.resultContent = $('<div class="panel-body"></div>');
@@ -183,6 +219,46 @@ MN.Search = MN.BaseElement.extend({
 			});
 		});
 	},
+	_searchUser : function(keywords) {
+		var me = this;
+			
+		// Desactivate all the components of the form
+		this.searchContainer.find('*').attr('disabled', true);
+			
+		// Hide existing results
+		this.resultsContainer.fadeOut(function() {
+			
+			// Empty results & show spinner
+			me.resultContent.empty();
+			me.spinner.fadeIn();
+			
+			// Start timer
+			var start = new Date().getTime();
+			
+			// Perform the request
+			$.ajax({
+				type: 'GET',
+				url: conf.endpoint + 'user/search/' + encodeURIComponent(keywords),
+				dataType : 'json',
+				headers : MN.authHeader(MN.user.login, MN.user.pass),
+				success: function(response) {
+					var end = new Date().getTime();
+					var time = end - start;
+
+					MN.notify("Recherche effectuée", "La recherche a été effectuée avec succès, et a retournée " + response.data.length + ' résultat(s) en ' + time + 'ms');
+					me._showUserResults(response.data);
+				},
+				error: function(response) {
+					MN.handleRequestError(response);
+				},
+				fail: function(response) {
+					MN.handleRequestFail(response);
+				}
+			}).always(function () {
+				me.searchContainer.find('*').attr('disabled', false);
+			});
+		});
+	},
 	_searchGeneral : function(api, keywords) {
 		this._search('manga/search/' + api + '/' + encodeURIComponent(keywords));
 	},
@@ -206,9 +282,9 @@ MN.Search = MN.BaseElement.extend({
 		results.forEach(function(result) {
 			var row = $('<tr></tr>');
 			
-			var image = $('<img class="img-responsive" src="' + conf.image + 'cover.jpg"  style="height: 100px;" data-toggle="tooltip" title="' + result.title + '" alt="' + result.title + '" />');
+			var image = $('<img class="img-responsive img-manga-cover" src="' + conf.image + 'cover.jpg"  style="height: 100px;" data-toggle="tooltip" title="' + result.title + '" alt="' + result.title + '" />');
 			image.tooltip(); // Add the tooltip
-			row.append($('<td></td>').append(image));
+			row.append($('<td rowspan="2"></td>').append(image));
 			
 			image.on('click', function(e) {
 				// Load the selected manga
@@ -227,7 +303,7 @@ MN.Search = MN.BaseElement.extend({
 			row.append('<td>' + result.source_URL + '</td>');
 			
 			var genres = $('<td></td>');
-			if(result.genres && result.length > 0) {
+			if(result.genres && result.genres.length > 0) {
 				result.genres.forEach(function(genre) {
 					var button = $('<button type="button" class="btn btn-info btn-xs btn-tag">' + genre + '</button>');
 					/*
@@ -241,8 +317,63 @@ MN.Search = MN.BaseElement.extend({
 			}
 			row.append(genres);
 			
-			row.append('<td> [Commandes] </td>');
+			resultTable.append(row);
+
+			// Add info about the manga
+			row = $('<tr></tr>');
+			if(result.user_info) {
+				var tags = $('<td colspan="3"></td>');
+				tags.append($('<button type="button" class="btn btn-info btn-xs btn-tag">Dans la collection</button>'));
+				
+				if(result.user_info.favoris) {
+					tags.append($('<button type="button" class="btn btn-warning btn-xs btn-tag">Favoris</button>'));
+				}
+
+				row.append(tags);
+			} else
+				row.append($('<td colspan="3"><button type="button" class="btn btn-disabled btn-xs btn-tag">Pas dans la collection</button></td>'));
+
+			resultTable.append(row);
+		});
+		
+		this.resultContent.append(resultTable);
+		
+		this.spinner.fadeOut(function() {
+			me.resultsContainer.fadeIn();
+		});
+	},
+	_showUserResults : function(results) {
+		var me = this;
+		var resultTable = $('<table class="table table-striped" style="background-color: white;"></table>');
+		
+		// Headers
+		var header = $('<tr></tr>');
+		header.append('<th> Login </th>');
+		header.append('<th> Nom </th>');
+		header.append('<th></th>');
+		resultTable.append(header);
+		
+		// Construct the array
+		results.forEach(function(result) {
+			var row = $('<tr></tr>');
 			
+			// Login
+			var login = $('<td class="clickable">' + result.login + '</td>');
+			row.append(login);
+			
+			login.on('click', function(e) {
+				// Load the selected user
+				me.fireEvent("user", e, { id : result.id });
+			});
+
+			// Name
+			row.append('<td>' + result.name + '</td>');
+
+			// Number of followers & following
+			var infos = $('<td></td>');
+			infos.append('Nombre d\'abonné(s) : ' + result.following.length + '<br/>Nombre d\'abonnement(s) : ' + result.followed.length);
+			row.append(infos);
+
 			resultTable.append(row);
 		});
 		
@@ -259,8 +390,8 @@ MN.Search = MN.BaseElement.extend({
 		this._initResultsFields();
 		
 		this.renderer.append(this.container);
-		
+
 		if(this.toSearch)
-			this._search('all', this.toSearch); // Search on all APIs
+			this._searchGeneral('all', this.toSearch); // Search on all APIs
 	}
 });

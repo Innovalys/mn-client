@@ -64,10 +64,13 @@ MN.HomePage = MN.BaseElement.extend({
 				var mangaNonFavoris = [];
 				
 				for(var i = 0; i < values.length; i++) {
-					if(values[i].user_info.favoris)
-						mangaFavoris.push(values[i]);
-					else
-						mangaNonFavoris.push(values[i]);
+					if(values[i].user_info.favoris) {
+						if(mangaFavoris.length < 6)
+							mangaFavoris.push(values[i]);
+					} else {
+						if(mangaNonFavoris.length < 6)
+							mangaNonFavoris.push(values[i]);
+					}
 				}
 				
 				// Update the view

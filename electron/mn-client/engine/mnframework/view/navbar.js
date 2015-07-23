@@ -44,7 +44,7 @@ MN.NavBar = MN.BaseElement.extend({
 		
 		// Mangas
 		var manga_button = $('<li><a href="#">Mes Mangas</a></li>');
-		manga_button.on('click', function(e) { me.fireEvent('mangapage', e); });
+		manga_button.on('click', function(e) { me.fireEvent('manga-all', e, {user : MN.user}); });
 		buttons.append(manga_button);
 		
 		// Search
