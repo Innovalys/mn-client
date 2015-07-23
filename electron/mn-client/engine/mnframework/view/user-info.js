@@ -47,12 +47,46 @@ MN.UserInfo = MN.BaseElement.extend({
 			if(followed) {
 				followUser.append('Arrêter de suivre l\'utilisateur');
 				followUser.on('click', function(e) {
-					
+					$.ajax({
+						type: 'POST',
+						url: conf.endpoint + 'user',
+						dataType : 'json',
+					    contentType: 'application/json',
+					    data: JSON.stringify({ unfollow : me.user.id }),
+						headers : MN.authHeader(MN.user.login, MN.user.pass),
+						success: function(data) {
+							me.updateView(); // reload
+							MN.notify('Désabonnement de l\'utilisateur', 'Vous êtes désabonné de ' + me.user.login);
+						}, 
+						error: function(response) {
+							MN.handleRequestError(response);
+						},
+						fail: function(response) {
+							MN.handleRequestFail(response);
+						}
+					});
 				});
 			} else {
 				followUser.append('Suivre l\'utilisateur');
 				followUser.on('click', function(e) {
-					
+					$.ajax({
+						type: 'POST',
+						url: conf.endpoint + 'user',
+						dataType : 'json',
+					    contentType: 'application/json',
+					    data: JSON.stringify({ follow : me.user.id }),
+						headers : MN.authHeader(MN.user.login, MN.user.pass),
+						success: function(data) {
+							me.updateView(); // reload
+							MN.notify('Abonnement de l\'utilisateur', 'Vous êtes maintenant abonné à ' + me.user.login);
+						}, 
+						error: function(response) {
+							MN.handleRequestError(response);
+						},
+						fail: function(response) {
+							MN.handleRequestFail(response);
+						}
+					});
 				});
 			}
 
